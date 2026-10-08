@@ -50,3 +50,15 @@ Thumbs.db
 
 # Replit conversation metadata
 .conversation/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Replit conversation metadata
+.conversation/
+
+# Local Replit artifacts
+artifacts/api-server/
+artifacts/mockup-sandbox/
