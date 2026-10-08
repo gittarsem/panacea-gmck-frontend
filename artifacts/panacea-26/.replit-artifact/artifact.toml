@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "PANACEA ’26"
+description = "The official festival website for PANACEA ’26 at Government Medical College, Kathua: explore events and the four-day schedule, manage mock registrations and passes, and experience the fest’s psychedelic poster-inspired identity."
+version = "1.0.0"
+id = "artifacts/panacea-26"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25560
+
+[services.development]
+run = "pnpm --filter @workspace/panacea-26 run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/panacea-26", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/panacea-26/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25560"
+BASE_PATH = "/"
