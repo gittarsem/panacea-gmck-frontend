@@ -18,162 +18,285 @@ interface AuthContextType {
   accessToken: string | null;
   loading: boolean;
 
-  login: (data: LoginRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<User>;
   signup: (data: SignupRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext =
+  createContext<AuthContextType | null>(null);
 
 const TOKEN_KEY = "panacea_access_token";
+
+/* =========================================================
+   API ERROR
+   ========================================================= */
+
+export interface AuthApiError extends Error {
+  status?: number;
+  code?: string;
+  fieldErrors?: Record<string, string>;
+}
+
+function createAuthError(
+  error: unknown,
+  fallbackMessage: string
+): AuthApiError {
+  if (error instanceof Error) {
+    return error as AuthApiError;
+  }
+
+  const authError = new Error(
+    fallbackMessage
+  ) as AuthApiError;
+
+  return authError;
+}
+
+/* =========================================================
+   AUTH PROVIDER
+   ========================================================= */
 
 export function AuthProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] =
+    useState<User | null>(null);
 
-  const [accessToken, setAccessToken] = useState<string | null>(() => {
-    return localStorage.getItem(TOKEN_KEY);
-  });
+  const [accessToken, setAccessToken] =
+    useState<string | null>(() => {
+      return localStorage.getItem(TOKEN_KEY);
+    });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  /**
-   * Save access token
-   */
+  /* =======================================================
+     TOKEN HELPERS
+     ======================================================= */
+
   const saveToken = (token: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(
+      TOKEN_KEY,
+      token
+    );
+
     setAccessToken(token);
   };
 
-  /**
-   * Clear authentication state
-   */
   const clearAuth = () => {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(
+      TOKEN_KEY
+    );
 
     setAccessToken(null);
     setUser(null);
   };
 
-  /**
-   * Load current user using access token
-   */
-  const loadUser = async (token: string) => {
+  /* =======================================================
+     LOAD CURRENT USER
+     ======================================================= */
+
+  const loadUser = async (
+    token: string
+  ) => {
     try {
-      const currentUser = await authApi.me(token);
+      const currentUser =
+        await authApi.me(token);
 
       setUser(currentUser);
-    } catch {
+
+      return currentUser;
+    } catch (error) {
       /*
-       * Access token may be expired.
+       * Do not replace the original API error.
        *
-       * Do not immediately clear authentication here.
-       * refreshUser() can attempt a refresh.
+       * This allows backend errors such as:
+       *
+       * {
+       *   "status": 401,
+       *   "message": "Invalid or expired token"
+       * }
+       *
+       * to continue through the auth layer.
        */
-      throw new Error("Unable to load current user");
+      throw createAuthError(
+        error,
+        "Unable to load current user."
+      );
     }
   };
 
-  /**
-   * Initialize authentication when application starts
-   */
+  /* =======================================================
+     INITIALIZE AUTH
+     ======================================================= */
+
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = localStorage.getItem(TOKEN_KEY);
-
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        await loadUser(token);
-      } catch {
-        /*
-         * Access token may have expired.
-         * Try using the HttpOnly refresh cookie.
-         */
-        try {
-          const response = await authApi.refresh();
-
-          saveToken(response.accessToken);
-
-          const currentUser = await authApi.me(
-            response.accessToken
+    const initializeAuth =
+      async () => {
+        const token =
+          localStorage.getItem(
+            TOKEN_KEY
           );
 
-          setUser(currentUser);
-        } catch {
-          clearAuth();
+        if (!token) {
+          setLoading(false);
+          return;
         }
-      } finally {
-        setLoading(false);
-      }
-    };
+
+        try {
+          await loadUser(token);
+        } catch {
+          /*
+           * Access token may be expired.
+           * Try refresh token before logging
+           * the user out.
+           */
+          try {
+            const response =
+              await authApi.refresh();
+
+            saveToken(
+              response.accessToken
+            );
+
+            const currentUser =
+              await authApi.me(
+                response.accessToken
+              );
+
+            setUser(currentUser);
+          } catch {
+            clearAuth();
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
 
     initializeAuth();
   }, []);
 
-  /**
-   * Login
-   */
-  const login = async (data: LoginRequest) => {
-    const response = await authApi.login(data);
+  /* =======================================================
+     LOGIN
+     ======================================================= */
 
-    saveToken(response.accessToken);
+  const login = async (
+    data: LoginRequest
+  ): Promise<User> => {
+    try {
+      const response =
+        await authApi.login(data);
 
-    setUser(response.user);
+      saveToken(
+        response.accessToken
+      );
+
+      setUser(response.user);
+
+      return response.user;
+    } catch (error) {
+      /*
+       * IMPORTANT:
+       * Preserve the error coming from authApi.
+       *
+       * AuthPage can now display:
+       *
+       * - Invalid credentials
+       * - Account not found
+       * - Account disabled
+       * - Backend validation message
+       * - Network error
+       */
+      throw createAuthError(
+        error,
+        "Login failed. Please try again."
+      );
+    }
   };
 
-  /**
-   * Signup
-   *
-   * Backend signup returns the created user.
-   * Therefore we immediately login after signup
-   * to obtain the JWT access token.
-   */
-  const signup = async (data: SignupRequest) => {
-    await authApi.signup(data);
+  /* =======================================================
+     SIGNUP
+     ======================================================= */
 
-    const response = await authApi.login({
-      email: data.email,
-      password: data.password,
-    });
+  const signup = async (
+    data: SignupRequest
+  ): Promise<void> => {
+    try {
+      /*
+       * Create account first.
+       */
+      await authApi.signup(data);
 
-    saveToken(response.accessToken);
+      /*
+       * Automatically login after
+       * successful registration.
+       */
+      const response =
+        await authApi.login({
+          email: data.email,
+          password: data.password,
+        });
 
-    setUser(response.user);
+      saveToken(
+        response.accessToken
+      );
+
+      setUser(response.user);
+    } catch (error) {
+      /*
+       * Preserve backend validation errors.
+       *
+       * Example:
+       *
+       * fieldErrors: {
+       *   email: "Email is already registered",
+       *   phoneNumber: "Phone number is already registered"
+       * }
+       */
+      throw createAuthError(
+        error,
+        "Registration failed. Please try again."
+      );
+    }
   };
 
-  /**
-   * Refresh current user
-   */
+  /* =======================================================
+     REFRESH USER
+     ======================================================= */
+
   const refreshUser = async () => {
     if (!accessToken) {
       return;
     }
 
     try {
-      const currentUser = await authApi.me(accessToken);
+      const currentUser =
+        await authApi.me(
+          accessToken
+        );
 
       setUser(currentUser);
     } catch {
       /*
-       * Access token expired.
-       * Try refresh token cookie.
+       * Current access token may be expired.
+       * Try refreshing it.
        */
       try {
-        const response = await authApi.refresh();
+        const response =
+          await authApi.refresh();
 
-        saveToken(response.accessToken);
-
-        const currentUser = await authApi.me(
+        saveToken(
           response.accessToken
         );
+
+        const currentUser =
+          await authApi.me(
+            response.accessToken
+          );
 
         setUser(currentUser);
       } catch {
@@ -182,23 +305,31 @@ export function AuthProvider({
     }
   };
 
-  /**
-   * Logout
-   */
+  /* =======================================================
+     LOGOUT
+     ======================================================= */
+
   const logout = async () => {
     try {
       await authApi.logout();
     } catch (error) {
-      console.error("Logout request failed:", error);
-    } finally {
       /*
-       * Always clear local authentication state.
-       *
-       * The backend clears the HttpOnly refresh cookie.
+       * Logout should still clear the local
+       * authentication state even if the backend
+       * request fails.
        */
+      console.error(
+        "Logout request failed:",
+        error
+      );
+    } finally {
       clearAuth();
     }
   };
+
+  /* =======================================================
+     PROVIDER
+     ======================================================= */
 
   return (
     <AuthContext.Provider
@@ -217,11 +348,13 @@ export function AuthProvider({
   );
 }
 
-/**
- * Authentication hook
- */
+/* =========================================================
+   USE AUTH
+   ========================================================= */
+
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
 
   if (!context) {
     throw new Error(

@@ -1,1009 +1,1364 @@
 import {
+
   ArrowLeft,
+
   ArrowRight,
+
+  Check,
+
   Upload,
+
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
-import { useLocation } from "wouter";
-import { useAuth } from "../context/AuthContext";
+
 import { useState } from "react";
+
+import { useLocation } from "wouter";
+
+
+
 import PageTitle from "@/components/PageTitle";
 
-/*
- * =========================================================
- * PANACEA PAYMENT CONFIG
- * =========================================================
- *
- * Replace this UPI ID with the official PANACEA UPI ID
- * before production.
- */
-const PANACEA_UPI_ID = "tarsemgulab2006@okhdfcbank";
-const PANACEA_UPI_NAME = "PANACEA 2026";
+import { brCardApi } from "../api/brCardApi";
 
-const API_BASE_URL = "http://localhost:8080/api";
 
-/*
- * =========================================================
- * API ERROR HELPER
- * =========================================================
- */
-async function getApiError(response: Response): Promise<string> {
-  const contentType = response.headers.get("content-type");
-
-  try {
-    if (contentType?.includes("application/json")) {
-      const data = await response.json();
-
-      if (typeof data === "string") {
-        return data;
-      }
-
-      if (data?.message) {
-        return data.message;
-      }
-
-      if (data?.error) {
-        return data.error;
-      }
-
-      if (data?.errors) {
-        return Array.isArray(data.errors)
-          ? data.errors.join(", ")
-          : String(data.errors);
-      }
-    } else {
-      const text = await response.text();
-
-      if (text.trim()) {
-        return text;
-      }
-    }
-  } catch {
-    // Ignore parsing errors and use fallback message.
-  }
-
-  return `Payment submission failed (${response.status})`;
-}
 
 export default function BrCardPaymentPage() {
-  const { user } = useAuth();
-  const [, setLoc] = useLocation();
 
-  const [transactionId, setTransactionId] =
-    useState("");
+  const [, setLocation] =
 
-  const [screenshot, setScreenshot] =
-    useState<File | null>(null);
+    useLocation();
 
-  const [paymentConfirmed, setPaymentConfirmed] =
-    useState(false);
 
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const [error, setError] = useState("");
 
   const params = new URLSearchParams(
+
     window.location.search
+
   );
+
+
+
+  const isUpgrade =
+
+    params.get("upgrade") === "true";
+
+
 
   const type =
-    params.get("type") === "with_accommodation"
+
+    params.get("type") ===
+
+    "with_accommodation"
+
       ? "with_accommodation"
+
       : "without_accommodation";
 
-  const price =
-    type === "with_accommodation" ? 1500 : 1000;
 
-  /*
-   * =========================================================
-   * UPI PAYMENT URL
-   * =========================================================
-   *
-   * Without accommodation → ₹1,000
-   * With accommodation    → ₹1,500
-   */
-  const upiUrl =
-    `upi://pay?pa=${encodeURIComponent(
-      PANACEA_UPI_ID
-    )}` +
-    `&pn=${encodeURIComponent(
-      PANACEA_UPI_NAME
-    )}` +
+
+  const price = isUpgrade
+
+    ? 500
+
+    : type === "with_accommodation"
+
+      ? 1500
+
+      : 1000;
+
+
+
+  // Replace this with the PANACEA payment UPI ID.
+  const upiId = "faizanmalik551@okicici";
+
+  // Client-side upload limits. Keep these conservative for Cloudinary usage.
+  const MAX_SCREENSHOT_SIZE = 10 * 1024 * 1024; // 10 MB
+  const ALLOWED_IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+  ];
+
+  // Required transaction ID format: exactly 12 digits, starting with 1-9.
+  const TRANSACTION_ID_PATTERN = /^[1-9]\d{11}$/;
+
+  const upiPaymentUrl =
+    `upi://pay?pa=${encodeURIComponent(upiId)}` +
+    `&pn=${encodeURIComponent("PANACEA '26")}` +
     `&am=${price.toFixed(2)}` +
-    `&cu=INR` +
-    `&tn=${encodeURIComponent(
-      "PANACEA 2026 BR Card"
-    )}`;
+    `&cu=INR`;
 
-  /*
-   * =========================================================
-   * LOGIN CHECK
-   * =========================================================
-   */
-  if (!user) {
-    return (
-      <main className="shell">
-        <PageTitle
-          tag="BR Card"
-          title="LOGIN REQUIRED."
-          sub="Please login to continue."
-        />
+  const qrCodeUrl =
+    `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&data=${encodeURIComponent(upiPaymentUrl)}`;
 
-        <button
-          className="button"
-          onClick={() => setLoc("/login")}
-        >
-          LOGIN
-          <ArrowRight size={15} />
-        </button>
-      </main>
-    );
-  }
 
-  /*
-   * =========================================================
-   * SUBMIT PAYMENT
-   * =========================================================
-   *
-   * Flow:
-   *
-   * Frontend
-   *   ↓
-   * Multipart request
-   *   ↓
-   * Spring Boot
-   *   ↓
-   * Cloudinary uploads screenshot
-   *   ↓
-   * PostgreSQL stores payment
-   *   ↓
-   * PAYMENT_PENDING
-   *   ↓
-   * Status page
-   */
-  const handleSubmit = async () => {
+  const passLabel = isUpgrade
+
+    ? "BR CARD · ACCOMMODATION UPGRADE"
+
+    : type === "with_accommodation"
+
+      ? "BR CARD + ACCOMMODATION"
+
+      : "BR CARD";
+
+
+
+  const [transactionId, setTransactionId] =
+
+    useState("");
+
+
+
+  const [
+
+    paymentScreenshot,
+
+    setPaymentScreenshot,
+
+  ] = useState<File | null>(null);
+
+
+
+  const [submitting, setSubmitting] =
+
+    useState(false);
+
+
+
+  const [error, setError] =
+
+    useState("");
+
+
+
+  const [confirmed, setConfirmed] =
+
+    useState(false);
+
+
+
+  const submitPayment = async () => {
+
     setError("");
 
-    /*
-     * -------------------------------------------------------
-     * Validate transaction ID
-     * -------------------------------------------------------
-     */
-    if (!transactionId.trim()) {
+
+
+    const cleanTransactionId = transactionId.trim();
+
+    if (!cleanTransactionId) {
+      setError("Please enter your transaction ID.");
+      return;
+    }
+
+    if (!TRANSACTION_ID_PATTERN.test(cleanTransactionId)) {
       setError(
-        "Please enter your UPI transaction ID."
+        "Transaction ID must be exactly 12 digits and start with 4, 5 or 6."
       );
       return;
     }
 
-    /*
-     * Basic frontend sanity check.
-     *
-     * Backend performs the actual validation as well.
-     */
-    const normalizedTransactionId =
-      transactionId
-        .trim()
-        .replace(/\s+/g, "")
-        .toUpperCase();
-
-    if (
-      normalizedTransactionId.length < 8 ||
-      normalizedTransactionId.length > 40
-    ) {
-      setError(
-        "Please enter a valid UPI transaction / UTR ID."
-      );
+    if (!paymentScreenshot) {
+      setError("Please upload your payment screenshot.");
       return;
     }
 
-    /*
-     * -------------------------------------------------------
-     * Validate screenshot
-     * -------------------------------------------------------
-     */
-    if (!screenshot) {
-      setError(
-        "Please upload your payment screenshot."
-      );
+    if (!ALLOWED_IMAGE_TYPES.includes(paymentScreenshot.type)) {
+      setError("Only JPG, PNG or WEBP images are allowed.");
       return;
     }
 
-    if (screenshot.size > 5 * 1024 * 1024) {
-      setError(
-        "Payment screenshot must be smaller than 5MB."
-      );
+    if (paymentScreenshot.size > MAX_SCREENSHOT_SIZE) {
+      setError("Payment screenshot must be 10 MB or smaller.");
       return;
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
 
-    if (!allowedTypes.includes(screenshot.type)) {
+
+    if (!confirmed) {
+
       setError(
-        "Only JPG, PNG and WEBP images are allowed."
-      );
-      return;
-    }
 
-    /*
-     * -------------------------------------------------------
-     * Payment confirmation
-     * -------------------------------------------------------
-     */
-    if (!paymentConfirmed) {
-      setError(
-        "Please confirm that you have completed the payment."
-      );
-      return;
-    }
+        "Please confirm the payment details."
 
-    /*
-     * -------------------------------------------------------
-     * Access token
-     * -------------------------------------------------------
-     *
-     * AuthContext stores the access token using this key.
-     */
-    const accessToken = localStorage.getItem(
-      "panacea_access_token"
-    );
-
-    if (!accessToken) {
-      setError(
-        "Your login session has expired. Please login again."
       );
 
-      setLoc("/login");
       return;
+
     }
+
+
 
     try {
+
       setSubmitting(true);
 
-      /*
-       * -----------------------------------------------------
-       * IMPORTANT:
-       *
-       * Backend enum is:
-       *
-       * WITHOUT_ACCOMMODATION
-       * WITH_ACCOMMODATION
-       *
-       * Therefore we must send the enum value expected
-       * by Spring Boot, not the frontend URL value.
-       * -----------------------------------------------------
-       */
-      const passType =
-        type === "with_accommodation"
-          ? "WITH_ACCOMMODATION"
-          : "WITHOUT_ACCOMMODATION";
 
-      /*
-       * -----------------------------------------------------
-       * Create multipart/form-data
-       * -----------------------------------------------------
-       *
-       * DO NOT manually set Content-Type.
-       *
-       * Browser automatically adds:
-       *
-       * multipart/form-data;
-       * boundary=...
-       *
-       */
-      const formData = new FormData();
 
-      formData.append(
-        "passType",
-        passType
-      );
+      if (isUpgrade) {
 
-      formData.append(
-        "transactionId",
-        normalizedTransactionId
-      );
+        await brCardApi.submitUpgradePayment(
 
-      formData.append(
-        "paymentScreenshot",
-        screenshot
-      );
+          cleanTransactionId,
 
-      /*
-       * -----------------------------------------------------
-       * Submit to backend
-       * -----------------------------------------------------
-       *
-       * Backend:
-       *
-       * POST /api/br-cards/payment
-       *
-       * Cloudinary receives the screenshot server-side.
-       */
-      const response = await fetch(
-        `${API_BASE_URL}/br-cards/payment`,
-        {
-          method: "POST",
+          paymentScreenshot
 
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+        );
 
-          credentials: "include",
+      } else {
 
-          body: formData,
-        }
-      );
+        await brCardApi.submitPayment(
 
-      /*
-       * -----------------------------------------------------
-       * Handle backend errors
-       * -----------------------------------------------------
-       */
-      if (!response.ok) {
-        if (
-          response.status === 401 ||
-          response.status === 403
-        ) {
-          localStorage.removeItem(
-            "panacea_access_token"
-          );
+          type === "with_accommodation"
 
-          setError(
-            "Your login session has expired. Please login again."
-          );
+            ? "WITH_ACCOMMODATION"
 
-          setLoc("/login");
-          return;
-        }
+            : "WITHOUT_ACCOMMODATION",
 
-        const message =
-          await getApiError(response);
+          cleanTransactionId,
 
-        throw new Error(message);
+          paymentScreenshot
+
+        );
+
       }
 
-      /*
-       * -----------------------------------------------------
-       * Payment successfully submitted
-       * -----------------------------------------------------
-       *
-       * Backend response should be something like:
-       *
-       * {
-       *   paymentId: 1,
-       *   brCardId: 12,
-       *   transactionId: "...",
-       *   amount: 1000,
-       *   status: "PENDING",
-       *   ...
-       * }
-       *
-       * We don't need to store it here because the status
-       * page will fetch the latest BR Card state from backend.
-       */
-      await response.json();
 
-      /*
-       * Payment is now PAYMENT_PENDING.
-       */
-      setLoc("/br-card/status");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to submit payment."
+
+      setLocation(
+
+        "/br-card/status"
+
       );
+
+    } catch (err) {
+
+      setError(
+
+        err instanceof Error
+
+          ? err.message
+
+          : "Payment submission failed."
+
+      );
+
     } finally {
+
       setSubmitting(false);
+
     }
+
   };
 
+
+
   return (
-    <main className="shell">
-      {/* BACK */}
-      <button
-        type="button"
-        onClick={() =>
-          setLoc(
-            `/br-card/checkout?type=${type}`
-          )
-        }
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          border: "none",
-          background: "transparent",
-          cursor: "pointer",
-          fontFamily: "inherit",
-          marginBottom: 30,
-          padding: 0,
-        }}
-      >
-        <ArrowLeft size={15} />
 
-        <span className="mono">
-          BACK TO DETAILS
-        </span>
-      </button>
+    <main
 
-      <PageTitle
-        tag="Secure Payment"
-        title="PAY."
-        sub="Complete your payment using the official PANACEA UPI account."
-      />
+      style={{
+
+        minHeight: "70vh",
+
+        padding:
+
+          "40px 20px 80px",
+
+      }}
+
+    >
 
       <div
-        className="two-col"
+
         style={{
-          paddingBottom: 90,
+
+          maxWidth: 1100,
+
+          margin: "0 auto",
+
         }}
+
       >
-        {/* =====================================================
-            LEFT — PAYMENT
-        ===================================================== */}
-        <section>
-          <div
-            className="mono"
-            style={{
-              marginBottom: 18,
-            }}
-          >
-            STEP 01 · MAKE PAYMENT
-          </div>
 
-          {/* QR CARD */}
-          <div
+        <button
+
+          onClick={() =>
+
+            setLocation(
+
+              "/br-card/status"
+
+            )
+
+          }
+
+          style={{
+
+            border: "none",
+
+            background:
+
+              "transparent",
+
+            padding: 0,
+
+            cursor: "pointer",
+
+            display: "inline-flex",
+
+            alignItems: "center",
+
+            gap: 8,
+
+            marginBottom: 35,
+
+          }}
+
+        >
+
+          <ArrowLeft size={16} />
+
+          BACK TO BR CARD
+
+        </button>
+
+
+
+        <PageTitle
+
+          tag={`PANACEA ’26 / ${passLabel}`}
+
+          title={
+
+            isUpgrade
+
+              ? "UPGRADE"
+
+              : "PAYMENT"
+
+          }
+
+          sub={
+
+            isUpgrade
+
+              ? "Upgrade your existing BR Card to include accommodation."
+
+              : "Complete your BR Card payment and submit the proof for verification."
+
+          }
+
+        />
+
+
+
+        <div
+
+          style={{
+
+            display: "grid",
+
+            gridTemplateColumns:
+
+              "minmax(0, 0.9fr) minmax(0, 1.1fr)",
+
+            gap: 30,
+
+            alignItems:
+
+              "start",
+
+          }}
+
+        >
+
+          <section
+
             style={{
-              border: "1px solid var(--ink)",
-              padding: 28,
+
+              border:
+
+                "1px solid rgba(0,0,0,0.15)",
+
+              padding: 30,
+
             }}
+
           >
+
             <div
+
               className="mono"
+
               style={{
+
                 fontSize: 10,
-                marginBottom: 18,
-                textAlign: "center",
+
+                marginBottom: 14,
+
               }}
+
             >
-              OFFICIAL PANACEA UPI
+
+              PAYMENT SUMMARY
+
             </div>
 
-            {/* QR CODE */}
+
+
             <div
+
               style={{
-                width: 260,
-                height: 260,
-                margin: "0 auto",
-                border:
-                  "1px solid var(--ink)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#fff",
-                padding: 12,
-                boxSizing: "border-box",
+
+                fontSize: 28,
+
+                fontWeight: 600,
+
               }}
+
             >
-              <QRCodeSVG
-                value={upiUrl}
-                size={230}
-                level="M"
-                includeMargin
-                bgColor="#ffffff"
-                fgColor="#000000"
-              />
+
+              {passLabel}
+
             </div>
 
-            {/* AMOUNT */}
-            <div
-              style={{
-                textAlign: "center",
-                marginTop: 22,
-              }}
-            >
-              <div
-                className="mono"
-                style={{
-                  fontSize: 9,
-                }}
-              >
-                AMOUNT
-              </div>
+
+
+            {isUpgrade && (
 
               <div
-                style={{
-                  fontSize: 36,
-                  fontWeight: 700,
-                  marginTop: 4,
-                }}
-              >
-                ₹
-                {price.toLocaleString(
-                  "en-IN"
-                )}
-              </div>
-            </div>
 
-            {/* PASS TYPE */}
-            <div
-              style={{
-                marginTop: 18,
-                textAlign: "center",
-              }}
-            >
-              <span
-                className="mono"
                 style={{
-                  fontSize: 9,
-                }}
-              >
-                SELECTED PASS
-              </span>
 
-              <div
-                style={{
-                  marginTop: 5,
+                  marginTop: 20,
+
+                  padding: 16,
+
+                  border:
+
+                    "1px solid rgba(0,0,0,0.12)",
+
                   fontSize: 14,
-                  fontWeight: 700,
-                }}
-              >
-                {type ===
-                "with_accommodation"
-                  ? "BR CARD + ACCOMMODATION"
-                  : "BR CARD WITHOUT ACCOMMODATION"}
-              </div>
-            </div>
 
-            {/* UPI ID */}
+                  lineHeight: 1.6,
+
+                }}
+
+              >
+
+                Your existing BR Card remains
+
+                active while this ₹500 upgrade
+
+                payment is being verified.
+
+              </div>
+
+            )}
+
+
+
             <div
+
               style={{
-                marginTop: 20,
-                paddingTop: 18,
+
+                marginTop: 35,
+
+                paddingTop: 25,
+
                 borderTop:
-                  "1px solid var(--ink)",
-                textAlign: "center",
+
+                  "1px solid rgba(0,0,0,0.12)",
+
               }}
+
             >
+
               <div
+
                 className="mono"
+
                 style={{
-                  fontSize: 9,
-                  marginBottom: 7,
+
+                  fontSize: 10,
+
+                  marginBottom: 8,
+
                 }}
+
               >
-                UPI ID
+
+                AMOUNT TO PAY
+
               </div>
 
-              <strong
-                style={{
-                  fontSize: 15,
-                  wordBreak: "break-all",
-                }}
-              >
-                {PANACEA_UPI_ID}
-              </strong>
-            </div>
-          </div>
 
-          {/* =================================================
-              PAYMENT FLOW
-          ================================================= */}
-          <div
-            style={{
-              marginTop: 32,
-              borderTop:
-                "1px solid var(--ink)",
-            }}
-          >
-            <div
-              className="mono"
-              style={{
-                fontSize: 11,
-                padding: "16px 0",
-                borderBottom:
-                  "1px solid var(--ink)",
-              }}
-            >
-              HOW TO COMPLETE PAYMENT
-            </div>
 
-            <div
-              style={{
-                position: "relative",
-                padding:
-                  "26px 0 8px 42px",
-              }}
-            >
-              {/* VERTICAL LINE */}
               <div
+
                 style={{
-                  position: "absolute",
-                  left: 9,
-                  top: 31,
-                  bottom: 31,
-                  width: 1,
-                  background:
-                    "var(--ink)",
+
+                  fontSize: 48,
+
+                  fontWeight: 700,
+
+                  lineHeight: 1,
+
                 }}
-              />
 
-              <PaymentStep
-                number="01"
-                title="SCAN"
-                text="Scan the official PANACEA payment QR using your UPI app."
-              />
+              >
 
-              <PaymentStep
-                number="02"
-                title="PAY"
-                text={`Pay exactly ₹${price.toLocaleString(
-                  "en-IN"
-                )}. The amount is pre-filled in the payment request.`}
-              />
+                ₹{price}
 
-              <PaymentStep
-                number="03"
-                title="SAVE"
-                text="Complete the payment and save your successful payment screenshot."
-              />
+              </div>
 
-              <PaymentStep
-                number="04"
-                title="SUBMIT"
-                text="Enter the transaction / UTR ID and upload your payment screenshot."
-                last
-              />
             </div>
-          </div>
-        </section>
 
-        {/* =====================================================
-            RIGHT — SUBMISSION
-        ===================================================== */}
-        <section>
-          <div
-            className="mono"
-            style={{
-              marginBottom: 18,
-            }}
-          >
-            STEP 02 · SUBMIT PAYMENT
-          </div>
 
-          {/* AMOUNT */}
-          <div
-            style={{
-              borderTop:
-                "1px solid var(--ink)",
-              borderBottom:
-                "1px solid var(--ink)",
-              padding: "20px 0",
-              marginBottom: 28,
-            }}
-          >
+
             <div
-              className="mono"
+
               style={{
+
+                marginTop: 35,
+
+                padding: 22,
+
+                border: "1px solid rgba(0,0,0,0.15)",
+
+                background: "rgba(0,0,0,0.02)",
+
+              }}
+
+            >
+
+              <div
+
+                className="mono"
+
+                style={{
+
+                  fontSize: 10,
+
+                  marginBottom: 16,
+
+                }}
+
+              >
+
+                PAY VIA UPI
+
+              </div>
+
+
+
+              <div
+
+                style={{
+
+                  display: "grid",
+
+                  gridTemplateColumns:
+
+                    "repeat(auto-fit, minmax(180px, 1fr))",
+
+                  gap: 22,
+
+                  alignItems: "center",
+
+                }}
+
+              >
+
+                <div
+
+                  style={{
+
+                    width: 180,
+
+                    height: 180,
+
+                    background: "#fff",
+
+                    border:
+
+                      "1px solid rgba(0,0,0,0.12)",
+
+                    display: "flex",
+
+                    alignItems: "center",
+
+                    justifyContent: "center",
+
+                    padding: 8,
+
+                    boxSizing: "border-box",
+
+                    margin: "0 auto",
+
+                  }}
+
+                >
+
+                  <img
+
+                    src={qrCodeUrl}
+
+                    alt={`UPI payment QR code for ₹${price}`}
+
+                    width={164}
+
+                    height={164}
+
+                    style={{
+
+                      display: "block",
+
+                      width: 164,
+
+                      height: 164,
+
+                    }}
+
+                  />
+
+                </div>
+
+
+
+                <div>
+
+                  <div
+
+                    style={{
+
+                      fontSize: 16,
+
+                      fontWeight: 600,
+
+                      lineHeight: 1.4,
+
+                    }}
+
+                  >
+
+                    Scan this QR to pay ₹{price}
+
+                  </div>
+
+
+
+                  <div
+
+                    className="mono"
+
+                    style={{
+
+                      marginTop: 10,
+
+                      fontSize: 11,
+
+                      wordBreak: "break-all",
+
+                      opacity: 0.7,
+
+                    }}
+
+                  >
+
+                    UPI ID: {upiId}
+
+                  </div>
+
+
+
+                  <div
+
+                    style={{
+
+                      marginTop: 14,
+
+                      fontSize: 13,
+
+                      lineHeight: 1.55,
+
+                      opacity: 0.75,
+
+                    }}
+
+                  >
+
+                    On desktop, scan the QR using Google Pay,
+
+                    PhonePe, Paytm or another UPI app. The amount
+
+                    and UPI ID are filled automatically.
+
+                  </div>
+
+
+
+                  <a
+
+                    href={upiPaymentUrl}
+
+                    style={{
+
+                      display: "inline-flex",
+
+                      alignItems: "center",
+
+                      justifyContent: "center",
+
+                      marginTop: 18,
+
+                      padding: "12px 16px",
+
+                      border: "1px solid currentColor",
+
+                      color: "inherit",
+
+                      textDecoration: "none",
+
+                      fontSize: 13,
+
+                      fontWeight: 600,
+
+                    }}
+
+                  >
+
+                    OPEN UPI APP · ₹{price}
+
+                  </a>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+
+            <div
+
+              style={{
+
+                marginTop: 35,
+
+                display: "grid",
+
+                gap: 15,
+
+              }}
+
+            >
+
+              <PaymentPoint
+
+                text="Submit the transaction ID"
+
+              />
+
+
+
+              <PaymentPoint
+
+                text="Upload your payment screenshot"
+
+              />
+
+
+
+              <PaymentPoint
+
+                text="Wait for manual verification"
+
+              />
+
+            </div>
+
+          </section>
+
+
+
+          <section
+
+            style={{
+
+              border:
+
+                "1px solid rgba(0,0,0,0.15)",
+
+              padding: 30,
+
+            }}
+
+          >
+
+            <div
+
+              className="mono"
+
+              style={{
+
                 fontSize: 10,
+
+                marginBottom: 25,
+
               }}
+
             >
-              AMOUNT TO PAY
+
+              PAYMENT DETAILS
+
             </div>
 
-            <div
-              style={{
-                fontSize: 38,
-                fontWeight: 700,
-                marginTop: 5,
-              }}
-            >
-              ₹
-              {price.toLocaleString(
-                "en-IN"
-              )}
-            </div>
-          </div>
 
-          {/* TRANSACTION ID */}
-          <div
-            style={{
-              marginBottom: 24,
-            }}
-          >
+
             <label
-              className="mono"
+
               style={{
+
                 display: "block",
-                fontSize: 11,
-                marginBottom: 10,
-              }}
-            >
-              UPI TRANSACTION / UTR ID *
-            </label>
 
-            <input
-              type="text"
-              value={transactionId}
-              onChange={(e) => {
-                setTransactionId(
-                  e.target.value
-                );
-                setError("");
               }}
-              placeholder="Enter transaction / UTR ID"
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "15px 14px",
-                border:
-                  "1px solid var(--ink)",
-                background:
-                  "transparent",
-                fontFamily: "inherit",
-                fontSize: 15,
-                outline: "none",
-              }}
-            />
-          </div>
 
-          {/* SCREENSHOT */}
-          <div
-            style={{
-              marginBottom: 24,
-            }}
-          >
-            <label
-              className="mono"
-              style={{
-                display: "block",
-                fontSize: 11,
-                marginBottom: 10,
-              }}
             >
-              PAYMENT SCREENSHOT *
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: 18,
-                border:
-                  "1px dashed var(--ink)",
-                cursor: "pointer",
-              }}
-            >
-              <Upload size={18} />
 
               <span
+
+                className="mono"
+
                 style={{
-                  fontSize: 14,
-                  lineHeight: 1.4,
-                  overflow: "hidden",
-                  textOverflow:
-                    "ellipsis",
-                  whiteSpace: "nowrap",
+
+                  display: "block",
+
+                  fontSize: 10,
+
+                  marginBottom: 9,
+
                 }}
+
               >
-                {screenshot
-                  ? screenshot.name
-                  : "Upload payment screenshot"}
+
+                TRANSACTION ID
+
               </span>
+
+
 
               <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(e) => {
-                  const file =
-                    e.target.files?.[0] ||
-                    null;
 
-                  setScreenshot(file);
-                  setError("");
+                value={transactionId}
+
+                onChange={(event) => {
+                  const value = event.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 12);
+                  setTransactionId(value);
                 }}
+                placeholder="ENTER 12-DIGIT TRANSACTION / UTR ID"
+                inputMode="numeric"
+                pattern="[4-6]\d{11}"
+                maxLength={12}
+                minLength={12}
+                disabled={submitting}
+
                 style={{
-                  display: "none",
+
+                  width: "100%",
+
+                  boxSizing:
+
+                    "border-box",
+
+                  padding:
+
+                    "14px 15px",
+
+                  border:
+
+                    "1px solid rgba(0,0,0,0.2)",
+
+                  background:
+
+                    "transparent",
+
+                  outline: "none",
+
                 }}
+
               />
+
             </label>
 
-            <p
-              className="mono"
+
+
+            <label
+
               style={{
-                fontSize: 9,
-                marginTop: 8,
+
+                display: "block",
+
+                marginTop: 25,
+
               }}
+
             >
-              PNG, JPG OR WEBP · MAX 5MB
-            </p>
-          </div>
 
-          {/* PAYMENT CONFIRMATION */}
-          <label
-            style={{
-              display: "flex",
-              alignItems:
-                "flex-start",
-              gap: 10,
-              cursor: "pointer",
-              marginBottom: 24,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={paymentConfirmed}
-              onChange={(e) =>
-                setPaymentConfirmed(
-                  e.target.checked
-                )
-              }
-              style={{
-                width: 17,
-                height: 17,
-                marginTop: 3,
-                flexShrink: 0,
-              }}
-            />
+              <span
 
-            <span
+                className="mono"
+
+                style={{
+
+                  display: "block",
+
+                  fontSize: 10,
+
+                  marginBottom: 9,
+
+                }}
+
+              >
+
+                PAYMENT SCREENSHOT
+
+              </span>
+
+
+
+              <div
+
+                style={{
+
+                  border:
+
+                    "1px dashed rgba(0,0,0,0.25)",
+
+                  padding: 25,
+
+                  textAlign:
+
+                    "center",
+
+                  cursor:
+
+                    submitting
+
+                      ? "default"
+
+                      : "pointer",
+
+                }}
+
+                onClick={() => {
+
+                  if (submitting) {
+
+                    return;
+
+                  }
+
+
+
+                  document
+
+                    .getElementById(
+
+                      "payment-screenshot"
+
+                    )
+
+                    ?.click();
+
+                }}
+
+              >
+
+                <Upload
+
+                  size={22}
+
+                  style={{
+
+                    marginBottom: 10,
+
+                  }}
+
+                />
+
+
+
+                <div
+
+                  style={{
+
+                    fontSize: 14,
+
+                    fontWeight: 600,
+
+                  }}
+
+                >
+
+                  {paymentScreenshot
+
+                    ? paymentScreenshot.name
+
+                    : "UPLOAD PAYMENT SCREENSHOT"}
+
+                </div>
+
+
+
+                <div
+
+                  style={{
+
+                    marginTop: 6,
+
+                    fontSize: 12,
+
+                    opacity: 0.6,
+
+                  }}
+
+                >
+
+                  JPG, PNG or WEBP · MAX 10 MB
+
+                </div>
+
+
+
+                <input
+
+                  id="payment-screenshot"
+
+                  type="file"
+
+                  accept="image/png,image/jpeg,image/webp"
+
+                  hidden
+
+                  disabled={submitting}
+
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+
+                    if (!file) {
+                      return;
+                    }
+
+                    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+                      setError("Only JPG, PNG or WEBP images are allowed.");
+                      event.target.value = "";
+                      return;
+                    }
+
+                    if (file.size > MAX_SCREENSHOT_SIZE) {
+                      setError("Payment screenshot must be 10 MB or smaller.");
+                      event.target.value = "";
+                      return;
+                    }
+
+                    setError("");
+                    setPaymentScreenshot(file);
+                  }}
+
+                />
+
+              </div>
+
+            </label>
+
+
+
+            <label
+
               style={{
-                fontSize: 14,
-                lineHeight: 1.5,
+
+                display: "flex",
+
+                alignItems:
+
+                  "flex-start",
+
+                gap: 12,
+
+                marginTop: 25,
+
+                cursor:
+
+                  submitting
+
+                    ? "default"
+
+                    : "pointer",
+
               }}
+
             >
-              I confirm that I have
-              completed the payment of{" "}
-              <strong>
-                ₹
-                {price.toLocaleString(
-                  "en-IN"
-                )}
-              </strong>{" "}
-              to the official PANACEA
-              UPI account and that the
-              transaction details provided
-              above are correct.
-            </span>
-          </label>
 
-          {/* ERROR */}
-          {error && (
-            <div
-              style={{
-                border:
-                  "1px solid var(--ink)",
-                padding: 14,
-                marginBottom: 20,
-                fontSize: 14,
-                lineHeight: 1.5,
-              }}
-              role="alert"
-            >
-              {error}
-            </div>
-          )}
+              <input
 
-          {/* SUBMIT */}
-          <button
-            className="button"
-            disabled={submitting}
-            onClick={handleSubmit}
-            style={{
-              opacity: submitting
-                ? 0.5
-                : 1,
-              cursor: submitting
-                ? "not-allowed"
-                : "pointer",
-            }}
-          >
-            {submitting
-              ? "SUBMITTING..."
-              : "SUBMIT PAYMENT"}
+                type="checkbox"
 
-            {!submitting && (
-              <ArrowRight size={15} />
+                checked={confirmed}
+
+                disabled={submitting}
+
+                onChange={(event) =>
+
+                  setConfirmed(
+
+                    event.target.checked
+
+                  )
+
+                }
+
+                style={{
+
+                  marginTop: 3,
+
+                }}
+
+              />
+
+
+
+              <span
+
+                style={{
+
+                  fontSize: 13,
+
+                  lineHeight: 1.55,
+
+                }}
+
+              >
+
+                I confirm that the payment
+
+                details and transaction ID
+
+                submitted above are correct.
+
+              </span>
+
+            </label>
+
+
+
+            {error && (
+
+              <div
+
+                style={{
+
+                  marginTop: 22,
+
+                  padding: 15,
+
+                  border:
+
+                    "1px solid rgba(160,60,50,0.4)",
+
+                  fontSize: 13,
+
+                  lineHeight: 1.5,
+
+                }}
+
+              >
+
+                {error}
+
+              </div>
+
             )}
-          </button>
 
-          <p
-            style={{
-              fontSize: 12,
-              lineHeight: 1.6,
-              marginTop: 16,
-            }}
-          >
-            Your payment will remain{" "}
-            <strong>PENDING</strong> until
-            it is manually verified by the
-            PANACEA organising team.
-          </p>
-        </section>
+
+
+            <button
+
+              onClick={submitPayment}
+
+              disabled={submitting}
+
+              style={{
+
+                width: "100%",
+
+                marginTop: 28,
+
+                padding:
+
+                  "16px 18px",
+
+                border:
+
+                  "1px solid currentColor",
+
+                background:
+
+                  submitting
+
+                    ? "rgba(0,0,0,0.08)"
+
+                    : "transparent",
+
+                cursor:
+
+                  submitting
+
+                    ? "not-allowed"
+
+                    : "pointer",
+
+                display: "flex",
+
+                alignItems:
+
+                  "center",
+
+                justifyContent:
+
+                  "space-between",
+
+                gap: 10,
+
+              }}
+
+            >
+
+              <span>
+
+                {submitting
+
+                  ? "SUBMITTING..."
+
+                  : isUpgrade
+
+                    ? "SUBMIT ₹500 UPGRADE"
+
+                    : `SUBMIT PAYMENT · ₹${price}`}
+
+              </span>
+
+
+
+              {!submitting && (
+
+                <ArrowRight
+
+                  size={17}
+
+                />
+
+              )}
+
+            </button>
+
+
+
+            <div
+
+              style={{
+
+                marginTop: 15,
+
+                fontSize: 11,
+
+                lineHeight: 1.5,
+
+                opacity: 0.6,
+
+                textAlign:
+
+                  "center",
+
+              }}
+
+            >
+
+              Payment is manually verified
+
+              by the PANACEA ’26 team.
+
+            </div>
+
+          </section>
+
+        </div>
+
       </div>
+
     </main>
+
   );
+
 }
 
-/* =========================================================
- * PAYMENT FLOW STEP
- * ========================================================= */
 
-function PaymentStep({
-  number,
-  title,
+
+function PaymentPoint({
+
   text,
-  last = false,
+
 }: {
-  number: string;
-  title: string;
+
   text: string;
-  last?: boolean;
+
 }) {
+
   return (
+
     <div
+
       style={{
-        position: "relative",
-        paddingBottom: last
-          ? 12
-          : 32,
+
+        display: "flex",
+
+        alignItems:
+
+          "flex-start",
+
+        gap: 10,
+
+        fontSize: 14,
+
+        lineHeight: 1.5,
+
       }}
+
     >
-      {/* DOT */}
-      <div
+
+      <Check
+
+        size={16}
+
         style={{
-          position: "absolute",
-          left: -42,
-          top: 1,
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          background: "var(--ink)",
-          border:
-            "4px solid var(--cream)",
-          boxSizing: "border-box",
-          zIndex: 2,
+
+          flexShrink: 0,
+
+          marginTop: 2,
+
         }}
+
       />
 
-      <div
-        className="mono"
-        style={{
-          fontSize: 9,
-          marginBottom: 5,
-          opacity: 0.65,
-        }}
-      >
-        STEP {number}
-      </div>
 
-      <div
-        style={{
-          fontSize: 18,
-          fontWeight: 700,
-          marginBottom: 5,
-        }}
-      >
-        {title}
-      </div>
 
-      <p
-        style={{
-          margin: 0,
-          fontSize: 14,
-          lineHeight: 1.55,
-          maxWidth: 500,
-        }}
-      >
-        {text}
-      </p>
+      <span>{text}</span>
+
     </div>
+
   );
+
 }

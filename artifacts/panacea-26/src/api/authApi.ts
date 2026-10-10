@@ -1,4 +1,8 @@
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "https://panacea-gmck-backend.onrender.com/api";
+
+/* =========================================================
+   TYPES
+   ========================================================= */
 
 export interface User {
   id: number;
@@ -35,37 +39,71 @@ export interface RefreshResponse {
   accessToken: string;
 }
 
+/* =========================================================
+   UPDATE PROFILE
+   ========================================================= */
+
+export interface UpdateProfileRequest {
+  fullName: string;
+  collegeName: string;
+  city: string;
+  state: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+/* =========================================================
+   API ERROR
+   ========================================================= */
+
+export interface ApiError extends Error {
+  status?: number;
+  fieldErrors?: Record<string, string>;
+}
+
+/* =========================================================
+   GENERIC REQUEST
+   ========================================================= */
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
+  const response = await fetch(
+    `${API_BASE_URL}${endpoint}`,
+    {
+      ...options,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    }
+  );
 
-  const contentType = response.headers.get("content-type");
+  const contentType =
+    response.headers.get("content-type");
 
   let data: unknown = null;
 
-  /*
-   * Read the response safely.
-   *
-   * Important:
-   * /auth/logout returns an empty body.
-   */
   const text = await response.text();
 
   if (text.trim()) {
-    if (contentType?.includes("application/json")) {
+    if (
+      contentType?.includes(
+        "application/json"
+      )
+    ) {
       try {
         data = JSON.parse(text);
       } catch {
-        throw new Error("Invalid JSON response from server");
+        throw new Error(
+          "Invalid JSON response from server"
+        );
       }
     } else {
       data = text;
@@ -73,84 +111,209 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    let message = "Something went wrong";
+    let message =
+      "Something went wrong.";
 
-    if (typeof data === "string" && data.trim()) {
+    let fieldErrors:
+      | Record<string, string>
+      | undefined;
+
+    if (
+      typeof data === "string" &&
+      data.trim()
+    ) {
       message = data;
-    } else if (data && typeof data === "object") {
-      const errorData = data as {
-        message?: string;
-        error?: string;
-        errors?: string[] | string;
-      };
+    }
+
+    if (
+      data &&
+      typeof data === "object"
+    ) {
+      const errorData =
+        data as {
+          message?: string;
+          error?: string;
+          errors?:
+            | string[]
+            | string;
+          fieldErrors?: Record<
+            string,
+            string
+          >;
+        };
 
       if (errorData.message) {
         message = errorData.message;
       } else if (errorData.error) {
         message = errorData.error;
       } else if (errorData.errors) {
-        message = Array.isArray(errorData.errors)
-          ? errorData.errors.join(", ")
-          : errorData.errors;
+        message =
+          Array.isArray(
+            errorData.errors
+          )
+            ? errorData.errors.join(
+                ", "
+              )
+            : errorData.errors;
       }
+
+      fieldErrors =
+        errorData.fieldErrors;
     }
 
-    throw new Error(message);
+    const error =
+      new Error(message) as ApiError;
+
+    error.status =
+      response.status;
+
+    error.fieldErrors =
+      fieldErrors;
+
+    throw error;
   }
 
   return data as T;
 }
 
-/* =========================
-   AUTH API FUNCTIONS
-   ========================= */
+/* =========================================================
+   AUTH API
+   ========================================================= */
 
-async function signup(data: SignupRequest): Promise<User> {
-  return request<User>("/auth/signup", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-async function login(data: LoginRequest): Promise<LoginResponse> {
-  return request<LoginResponse>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-async function me(accessToken: string): Promise<User> {
-  return request<User>("/auth/me", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-}
-
-async function refresh(): Promise<RefreshResponse> {
-  return request<RefreshResponse>("/auth/refresh", {
-    method: "POST",
-  });
-}
-
-async function logout(): Promise<void> {
-  await request<void>("/auth/logout", {
-    method: "POST",
-  });
-}
-
-/*
- * THIS IS THE IMPORTANT PART
- *
- * AuthContext.tsx imports:
- *
- * import { authApi } from "@/api/authApi";
+/**
+ * Register user
  */
+async function signup(
+  data: SignupRequest
+): Promise<User> {
+  return request<User>(
+    "/auth/signup",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Login
+ */
+async function login(
+  data: LoginRequest
+): Promise<LoginResponse> {
+  return request<LoginResponse>(
+    "/auth/login",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Get currently authenticated user
+ *
+ * BACKEND:
+ * GET /api/auth/me
+ */
+async function me(
+  accessToken: string
+): Promise<User> {
+  return request<User>(
+    "/auth/me",
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+}
+
+/**
+ * Refresh access token
+ */
+async function refresh(): Promise<RefreshResponse> {
+  return request<RefreshResponse>(
+    "/auth/refresh",
+    {
+      method: "POST",
+    }
+  );
+}
+
+/**
+ * Logout
+ */
+async function logout(): Promise<void> {
+  await request<void>(
+    "/auth/logout",
+    {
+      method: "POST",
+    }
+  );
+}
+
+/* =========================================================
+   PROFILE API
+   ========================================================= */
+
+/**
+ * Update profile.
+ *
+ * IMPORTANT:
+ * Change "/profile/me" here if your Spring
+ * controller uses a different PUT mapping.
+ */
+async function updateProfile(
+  accessToken: string,
+  data: UpdateProfileRequest
+): Promise<User> {
+  return request<User>(
+    "/profile/me",
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Change password.
+ *
+ * IMPORTANT:
+ * Change "/profile/me/password" here if your
+ * Spring controller uses another mapping.
+ */
+async function changePassword(
+  accessToken: string,
+  data: ChangePasswordRequest
+): Promise<void> {
+  await request<void>(
+    "/profile/me/password",
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
+
 export const authApi = {
   signup,
   login,
   me,
   refresh,
   logout,
+  updateProfile,
+  changePassword,
 };
