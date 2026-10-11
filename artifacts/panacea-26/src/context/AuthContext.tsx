@@ -135,47 +135,86 @@ export function AuthProvider({
      ======================================================= */
 
   useEffect(() => {
-    const initializeAuth =
-      async () => {
-        const token =
-          localStorage.getItem(
-            TOKEN_KEY
+    const initializeAuth = async () => {
+      const token =
+        localStorage.getItem(TOKEN_KEY);
+
+      try {
+        /*
+         * =================================================
+         * CASE 1:
+         * Access token exists.
+         *
+         * Try to use it first.
+         * =================================================
+         */
+        if (token) {
+          try {
+            await loadUser(token);
+
+            /*
+             * Access token is valid.
+             * Authentication restored.
+             */
+            return;
+          } catch {
+            /*
+             * Access token may be expired.
+             *
+             * Continue to refresh-token flow.
+             */
+          }
+        }
+
+        /*
+         * =================================================
+         * CASE 2:
+         * No access token OR access token expired.
+         *
+         * Try the HttpOnly refreshToken cookie.
+         *
+         * authApi.request() already uses:
+         *
+         * credentials: "include"
+         *
+         * so the browser will send the refresh cookie.
+         * =================================================
+         */
+        const response =
+          await authApi.refresh();
+
+        /*
+         * Save newly generated access token.
+         */
+        saveToken(
+          response.accessToken
+        );
+
+        /*
+         * Load authenticated user using
+         * the new access token.
+         */
+        const currentUser =
+          await authApi.me(
+            response.accessToken
           );
 
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-
-        try {
-          await loadUser(token);
-        } catch {
-          /*
-           * Access token may be expired.
-           * Try refresh token before logging
-           * the user out.
-           */
-          try {
-            const response =
-              await authApi.refresh();
-
-            saveToken(
-              response.accessToken
-            );
-
-            const currentUser =
-              await authApi.me(
-                response.accessToken
-              );
-
-            setUser(currentUser);
-          } catch {
-            clearAuth();
-          }
-        } finally {
-          setLoading(false);
-        }
-      };
+        setUser(currentUser);
+      } catch {
+        /*
+         * No valid access token and no valid
+         * refresh-token session.
+         *
+         * Treat the user as logged out.
+         */
+        clearAuth();
+      } finally {
+        /*
+         * Authentication initialization is complete.
+         */
+        setLoading(false);
+      }
+    };
 
     initializeAuth();
   }, []);
@@ -191,6 +230,12 @@ export function AuthProvider({
       const response =
         await authApi.login(data);
 
+      /*
+       * Store access token.
+       *
+       * Backend also sets the HttpOnly
+       * refreshToken cookie.
+       */
       saveToken(
         response.accessToken
       );
@@ -241,6 +286,12 @@ export function AuthProvider({
           password: data.password,
         });
 
+      /*
+       * Save access token.
+       *
+       * Backend also creates the
+       * refreshToken cookie.
+       */
       saveToken(
         response.accessToken
       );
@@ -269,22 +320,11 @@ export function AuthProvider({
      ======================================================= */
 
   const refreshUser = async () => {
+    /*
+     * If there is no access token, attempt to
+     * restore the session using the refresh cookie.
+     */
     if (!accessToken) {
-      return;
-    }
-
-    try {
-      const currentUser =
-        await authApi.me(
-          accessToken
-        );
-
-      setUser(currentUser);
-    } catch {
-      /*
-       * Current access token may be expired.
-       * Try refreshing it.
-       */
       try {
         const response =
           await authApi.refresh();
@@ -302,6 +342,48 @@ export function AuthProvider({
       } catch {
         clearAuth();
       }
+
+      return;
+    }
+
+    try {
+      /*
+       * First try the existing access token.
+       */
+      const currentUser =
+        await authApi.me(
+          accessToken
+        );
+
+      setUser(currentUser);
+    } catch {
+      /*
+       * Current access token may be expired.
+       *
+       * Try refreshing it using the
+       * HttpOnly refreshToken cookie.
+       */
+      try {
+        const response =
+          await authApi.refresh();
+
+        saveToken(
+          response.accessToken
+        );
+
+        const currentUser =
+          await authApi.me(
+            response.accessToken
+          );
+
+        setUser(currentUser);
+      } catch {
+        /*
+         * Refresh token is invalid/expired
+         * or the session no longer exists.
+         */
+        clearAuth();
+      }
     }
   };
 
@@ -311,6 +393,10 @@ export function AuthProvider({
 
   const logout = async () => {
     try {
+      /*
+       * Tell backend to invalidate/clear
+       * the refreshToken cookie.
+       */
       await authApi.logout();
     } catch (error) {
       /*
@@ -323,6 +409,9 @@ export function AuthProvider({
         error
       );
     } finally {
+      /*
+       * Always clear local authentication state.
+       */
       clearAuth();
     }
   };
