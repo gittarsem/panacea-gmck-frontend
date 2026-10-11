@@ -14,13 +14,9 @@ import { useState } from "react";
 
 import { useLocation } from "wouter";
 
-
-
 import PageTitle from "@/components/PageTitle";
 
 import { brCardApi } from "../api/brCardApi";
-
-
 
 export default function BrCardPaymentPage() {
 
@@ -28,21 +24,15 @@ export default function BrCardPaymentPage() {
 
     useLocation();
 
-
-
   const params = new URLSearchParams(
 
     window.location.search
 
   );
 
-
-
   const isUpgrade =
 
     params.get("upgrade") === "true";
-
-
 
   const type =
 
@@ -54,8 +44,6 @@ export default function BrCardPaymentPage() {
 
       : "without_accommodation";
 
-
-
   const price = isUpgrade
 
     ? 500
@@ -66,31 +54,41 @@ export default function BrCardPaymentPage() {
 
       : 1000;
 
-
-
   // Replace this with the PANACEA payment UPI ID.
+
   const upiId = "faizanmalik551@okicici";
 
   // Client-side upload limits. Keep these conservative for Cloudinary usage.
+
   const MAX_SCREENSHOT_SIZE = 10 * 1024 * 1024; // 10 MB
+
   const ALLOWED_IMAGE_TYPES = [
+
     "image/jpeg",
+
     "image/png",
+
     "image/webp",
+
   ];
 
   // Required transaction ID format: exactly 12 digits, starting with 1-9.
+
   const TRANSACTION_ID_PATTERN = /^[1-9]\d{11}$/;
 
   const upiPaymentUrl =
+
     `upi://pay?pa=${encodeURIComponent(upiId)}` +
+
     `&pn=${encodeURIComponent("PANACEA '26")}` +
+
     `&am=${price.toFixed(2)}` +
+
     `&cu=INR`;
 
   const qrCodeUrl =
-    `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&data=${encodeURIComponent(upiPaymentUrl)}`;
 
+    `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&data=${encodeURIComponent(upiPaymentUrl)}`;
 
   const passLabel = isUpgrade
 
@@ -102,13 +100,9 @@ export default function BrCardPaymentPage() {
 
       : "BR CARD";
 
-
-
   const [transactionId, setTransactionId] =
 
     useState("");
-
-
 
   const [
 
@@ -118,62 +112,67 @@ export default function BrCardPaymentPage() {
 
   ] = useState<File | null>(null);
 
-
-
   const [submitting, setSubmitting] =
 
     useState(false);
-
-
 
   const [error, setError] =
 
     useState("");
 
-
-
   const [confirmed, setConfirmed] =
 
     useState(false);
-
-
 
   const submitPayment = async () => {
 
     setError("");
 
-
-
     const cleanTransactionId = transactionId.trim();
 
     if (!cleanTransactionId) {
+
       setError("Please enter your transaction ID.");
+
       return;
+
     }
 
     if (!TRANSACTION_ID_PATTERN.test(cleanTransactionId)) {
+
       setError(
+
         "Transaction ID must be exactly 12 digits and start with 4, 5 or 6."
+
       );
+
       return;
+
     }
 
     if (!paymentScreenshot) {
+
       setError("Please upload your payment screenshot.");
+
       return;
+
     }
 
     if (!ALLOWED_IMAGE_TYPES.includes(paymentScreenshot.type)) {
+
       setError("Only JPG, PNG or WEBP images are allowed.");
+
       return;
+
     }
 
     if (paymentScreenshot.size > MAX_SCREENSHOT_SIZE) {
+
       setError("Payment screenshot must be 10 MB or smaller.");
+
       return;
+
     }
-
-
 
     if (!confirmed) {
 
@@ -187,13 +186,9 @@ export default function BrCardPaymentPage() {
 
     }
 
-
-
     try {
 
       setSubmitting(true);
-
-
 
       if (isUpgrade) {
 
@@ -223,8 +218,6 @@ export default function BrCardPaymentPage() {
 
       }
 
-
-
       setLocation(
 
         "/br-card/status"
@@ -251,13 +244,17 @@ export default function BrCardPaymentPage() {
 
   };
 
-
-
   return (
 
     <main
 
+      className="panacea-payment-page"
+
       style={{
+
+        width: "100%",
+
+        boxSizing: "border-box",
 
         minHeight: "70vh",
 
@@ -270,6 +267,8 @@ export default function BrCardPaymentPage() {
     >
 
       <div
+
+        className="payment-page-container"
 
         style={{
 
@@ -323,8 +322,6 @@ export default function BrCardPaymentPage() {
 
         </button>
 
-
-
         <PageTitle
 
           tag={`PANACEA ’26 / ${passLabel}`}
@@ -351,9 +348,9 @@ export default function BrCardPaymentPage() {
 
         />
 
-
-
         <div
+
+          className="payment-layout"
 
           style={{
 
@@ -374,6 +371,8 @@ export default function BrCardPaymentPage() {
         >
 
           <section
+
+            className="payment-details"
 
             style={{
 
@@ -405,9 +404,9 @@ export default function BrCardPaymentPage() {
 
             </div>
 
-
-
             <div
+
+              className="payment-pass-label"
 
               style={{
 
@@ -422,8 +421,6 @@ export default function BrCardPaymentPage() {
               {passLabel}
 
             </div>
-
-
 
             {isUpgrade && (
 
@@ -456,8 +453,6 @@ export default function BrCardPaymentPage() {
               </div>
 
             )}
-
-
 
             <div
 
@@ -493,9 +488,9 @@ export default function BrCardPaymentPage() {
 
               </div>
 
-
-
               <div
+
+                className="payment-amount"
 
                 style={{
 
@@ -514,8 +509,6 @@ export default function BrCardPaymentPage() {
               </div>
 
             </div>
-
-
 
             <div
 
@@ -551,9 +544,9 @@ export default function BrCardPaymentPage() {
 
               </div>
 
-
-
               <div
+
+                className="upi-payment-grid"
 
                 style={{
 
@@ -572,6 +565,8 @@ export default function BrCardPaymentPage() {
               >
 
                 <div
+
+                  className="upi-qr-box"
 
                   style={{
 
@@ -625,9 +620,7 @@ export default function BrCardPaymentPage() {
 
                 </div>
 
-
-
-                <div>
+                <div className="upi-info">
 
                   <div
 
@@ -646,8 +639,6 @@ export default function BrCardPaymentPage() {
                     Scan this QR to pay ₹{price}
 
                   </div>
-
-
 
                   <div
 
@@ -670,8 +661,6 @@ export default function BrCardPaymentPage() {
                     UPI ID: {upiId}
 
                   </div>
-
-
 
                   <div
 
@@ -696,8 +685,6 @@ export default function BrCardPaymentPage() {
                     and UPI ID are filled automatically.
 
                   </div>
-
-
 
                   <a
 
@@ -739,8 +726,6 @@ export default function BrCardPaymentPage() {
 
             </div>
 
-
-
             <div
 
               style={{
@@ -761,15 +746,11 @@ export default function BrCardPaymentPage() {
 
               />
 
-
-
               <PaymentPoint
 
                 text="Upload your payment screenshot"
 
               />
-
-
 
               <PaymentPoint
 
@@ -781,9 +762,9 @@ export default function BrCardPaymentPage() {
 
           </section>
 
-
-
           <section
+
+            className="payment-details"
 
             style={{
 
@@ -815,8 +796,6 @@ export default function BrCardPaymentPage() {
 
             </div>
 
-
-
             <label
 
               style={{
@@ -847,23 +826,34 @@ export default function BrCardPaymentPage() {
 
               </span>
 
-
-
               <input
+
+                className="payment-transaction-input"
 
                 value={transactionId}
 
                 onChange={(event) => {
+
                   const value = event.target.value
+
                     .replace(/\D/g, "")
+
                     .slice(0, 12);
+
                   setTransactionId(value);
+
                 }}
+
                 placeholder="ENTER 12-DIGIT TRANSACTION / UTR ID"
+
                 inputMode="numeric"
+
                 pattern="[4-6]\d{11}"
+
                 maxLength={12}
+
                 minLength={12}
+
                 disabled={submitting}
 
                 style={{
@@ -893,8 +883,6 @@ export default function BrCardPaymentPage() {
               />
 
             </label>
-
-
 
             <label
 
@@ -928,9 +916,9 @@ export default function BrCardPaymentPage() {
 
               </span>
 
-
-
               <div
+
+                className="payment-upload-box"
 
                 style={{
 
@@ -962,8 +950,6 @@ export default function BrCardPaymentPage() {
 
                   }
 
-
-
                   document
 
                     .getElementById(
@@ -990,8 +976,6 @@ export default function BrCardPaymentPage() {
 
                 />
 
-
-
                 <div
 
                   style={{
@@ -1012,8 +996,6 @@ export default function BrCardPaymentPage() {
 
                 </div>
 
-
-
                 <div
 
                   style={{
@@ -1032,8 +1014,6 @@ export default function BrCardPaymentPage() {
 
                 </div>
 
-
-
                 <input
 
                   id="payment-screenshot"
@@ -1047,26 +1027,39 @@ export default function BrCardPaymentPage() {
                   disabled={submitting}
 
                   onChange={(event) => {
+
                     const file = event.target.files?.[0];
 
                     if (!file) {
+
                       return;
+
                     }
 
                     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+
                       setError("Only JPG, PNG or WEBP images are allowed.");
+
                       event.target.value = "";
+
                       return;
+
                     }
 
                     if (file.size > MAX_SCREENSHOT_SIZE) {
+
                       setError("Payment screenshot must be 10 MB or smaller.");
+
                       event.target.value = "";
+
                       return;
+
                     }
 
                     setError("");
+
                     setPaymentScreenshot(file);
+
                   }}
 
                 />
@@ -1075,9 +1068,9 @@ export default function BrCardPaymentPage() {
 
             </label>
 
-
-
             <label
+
+              className="payment-confirmation"
 
               style={{
 
@@ -1129,8 +1122,6 @@ export default function BrCardPaymentPage() {
 
               />
 
-
-
               <span
 
                 style={{
@@ -1152,8 +1143,6 @@ export default function BrCardPaymentPage() {
               </span>
 
             </label>
-
-
 
             {error && (
 
@@ -1182,8 +1171,6 @@ export default function BrCardPaymentPage() {
               </div>
 
             )}
-
-
 
             <button
 
@@ -1251,8 +1238,6 @@ export default function BrCardPaymentPage() {
 
               </span>
 
-
-
               {!submitting && (
 
                 <ArrowRight
@@ -1264,8 +1249,6 @@ export default function BrCardPaymentPage() {
               )}
 
             </button>
-
-
 
             <div
 
@@ -1299,13 +1282,193 @@ export default function BrCardPaymentPage() {
 
       </div>
 
+
+      <style>{`
+        .panacea-payment-page {
+          overflow-x: hidden;
+        }
+
+        .payment-page-container {
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .payment-layout {
+          min-width: 0;
+        }
+
+        .payment-layout > section {
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
+        .payment-summary,
+        .payment-details {
+          overflow: hidden;
+        }
+
+        .payment-summary {
+          overflow-wrap: anywhere;
+        }
+
+        .payment-summary > div,
+        .payment-details > div,
+        .payment-details label,
+        .upi-info {
+          min-width: 0;
+        }
+
+        .upi-payment-grid {
+          min-width: 0;
+        }
+
+        .upi-qr-box {
+          max-width: 100%;
+        }
+
+        .upi-qr-box img {
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
+        }
+
+        .upi-info {
+          overflow-wrap: anywhere;
+        }
+
+        .payment-upload-box {
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+          overflow-wrap: anywhere;
+        }
+
+        .payment-confirmation span {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 768px) {
+          .panacea-payment-page {
+            width: 100% !important;
+            max-width: 100vw !important;
+            min-width: 0 !important;
+            padding: 24px 12px 50px !important;
+            overflow-x: hidden !important;
+          }
+
+          .payment-page-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+          }
+
+          .payment-layout {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 16px !important;
+          }
+
+          .payment-layout > section {
+            width: 100%;
+            padding: 20px !important;
+          }
+
+          .payment-pass-label {
+            font-size: 23px !important;
+            line-height: 1.2 !important;
+          }
+
+          .payment-amount {
+            font-size: 42px !important;
+          }
+
+          .upi-payment-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 18px !important;
+            justify-items: stretch;
+          }
+
+          .upi-qr-box {
+            width: 180px !important;
+            height: 180px !important;
+          }
+
+          .upi-info {
+            width: 100%;
+            text-align: left;
+          }
+
+          .upi-info a {
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .payment-upload-box {
+            min-height: 150px;
+            padding: 20px 14px !important;
+          }
+
+          .payment-details input {
+            font-size: 16px !important;
+            min-width: 0;
+          }
+
+          .payment-confirmation {
+            gap: 10px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .panacea-payment-page {
+            padding: 18px 8px 40px !important;
+          }
+
+          .payment-layout > section {
+            padding: 16px !important;
+          }
+
+          .payment-pass-label {
+            font-size: 20px !important;
+          }
+
+          .payment-amount {
+            font-size: 36px !important;
+          }
+
+          .upi-payment-grid {
+            gap: 14px !important;
+          }
+
+          .upi-qr-box {
+            width: 164px !important;
+            height: 164px !important;
+          }
+
+          .upi-qr-box img {
+            width: 148px !important;
+            height: 148px !important;
+          }
+
+          .upi-info > div:first-child {
+            font-size: 15px !important;
+          }
+
+          .payment-upload-box {
+            min-height: 140px;
+            padding: 18px 10px !important;
+          }
+
+          .payment-confirmation span {
+            font-size: 12px !important;
+          }
+        }
+      `}</style>
+
     </main>
 
   );
 
 }
-
-
 
 function PaymentPoint({
 
@@ -1352,8 +1515,6 @@ function PaymentPoint({
         }}
 
       />
-
-
 
       <span>{text}</span>
 
