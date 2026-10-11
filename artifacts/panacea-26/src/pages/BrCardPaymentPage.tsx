@@ -167,7 +167,7 @@ export default function BrCardPaymentPage() {
        *
        * This immediately displays the full-screen
        * submitting overlay and prevents additional
-       * requests/clicks.
+       * requests/clicks
        */
       setSubmitting(true);
 
