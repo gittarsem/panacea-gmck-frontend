@@ -12,23 +12,8 @@ import { useAuth } from "../context/AuthContext";
 
 function ProfileOverview() {
     return (
-        <div
-            style={{
-                display: "grid",
-                gridTemplateColumns:
-                    "minmax(0, 1.3fr) minmax(0, 1fr)",
-                gap: 35,
-                alignItems: "stretch",
-            }}
-        >
-            {/* PROFILE DETAILS */}
-            <section
-                style={{
-                    border: "1px solid #111",
-                    padding: 40,
-                    boxShadow: "8px 8px 0 #111",
-                }}
-            >
+        <div className="profile-overview">
+            <section className="profile-details">
                 <div
                     className="mono"
                     style={{
@@ -43,96 +28,48 @@ function ProfileOverview() {
                     className="display"
                     style={{
                         margin: 0,
-                        fontSize: "clamp(44px, 5vw, 72px)",
+                        fontSize: "clamp(42px, 5vw, 72px)",
                         lineHeight: 0.9,
+                        overflowWrap: "anywhere",
                     }}
                 >
                     PROFILE
                 </h1>
 
-                <p
-                    style={{
-                        marginTop: 25,
-                        lineHeight: 1.6,
-                        maxWidth: 600,
-                    }}
-                >
+                <p className="profile-description">
                     Manage your PANACEA ’26 registrations, saved
                     events, BR Cards and account settings.
                 </p>
             </section>
 
-            {/* PROFILE STATS */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 25,
-                }}
-            >
-               
+            <div className="profile-stats">
+                <div className="profile-stat">
+                    <div className="mono">
+                        SAVED EVENTS
+                    </div>
 
-                <div
-                    style={{
-                        background: "#f5b719",
-                        border: "1px solid #111",
-                        padding: 30,
-                        boxShadow: "7px 7px 0 #111",
-                    }}
-                >
-                    <div className="mono">SAVED EVENTS</div>
-
-                    <div
-                        className="display"
-                        style={{
-                            marginTop: 35,
-                            fontSize: 60,
-                            lineHeight: 1,
-                        }}
-                    >
+                    <div className="profile-stat-value display">
                         0
                     </div>
                 </div>
 
-                <div
-                    style={{
-                        background: "#f5b719",
-                        border: "1px solid #111",
-                        padding: 30,
-                        boxShadow: "7px 7px 0 #111",
-                    }}
-                >
-                    <div className="mono">MY CARDS</div>
+                <div className="profile-stat">
+                    <div className="mono">
+                        MY CARDS
+                    </div>
 
-                    <div
-                        className="display"
-                        style={{
-                            marginTop: 35,
-                            fontSize: 60,
-                            lineHeight: 1,
-                        }}
-                    >
+                    <div className="profile-stat-value display">
                         1
                     </div>
                 </div>
 
-                <div
-                    style={{
-                        background: "#f5b719",
-                        border: "1px solid #111",
-                        padding: 30,
-                        boxShadow: "7px 7px 0 #111",
-                    }}
-                >
-                    <div className="mono">FESTIVAL DATES</div>
+                <div className="profile-stat">
+                    <div className="mono">
+                        FESTIVAL DATES
+                    </div>
 
                     <div
-                        className="display"
-                        style={{
-                            marginTop: 35,
-                            fontSize: 40,
-                            lineHeight: 1,
-                        }}
+                        className="profile-stat-value display profile-date-value"
                     >
                         28–31 OCT
                     </div>
@@ -152,18 +89,8 @@ export default function ProfileHome() {
         user?.fullName?.trim().split(" ")[0] || "THERE";
 
     return (
-        <main
-            style={{
-                maxWidth: 1400,
-                margin: "0 auto",
-                padding: "28px 50px 100px",
-            }}
-        >
-            <div
-                style={{
-                    marginBottom: 45,
-                }}
-            >
+        <main className="profile-page">
+            <div className="profile-heading">
                 <div
                     className="mono"
                     style={{
@@ -175,17 +102,7 @@ export default function ProfileHome() {
                     GOOD TO SEE YOU
                 </div>
 
-                <h1
-                    className="display"
-                    style={{
-                        margin: 0,
-                        fontSize: "clamp(72px, 11vw, 170px)",
-                        lineHeight: 0.82,
-                        letterSpacing: "-0.07em",
-                        textTransform: "uppercase",
-                        wordBreak: "break-word",
-                    }}
-                >
+                <h1 className="display profile-greeting">
                     {firstName}.
                 </h1>
             </div>
