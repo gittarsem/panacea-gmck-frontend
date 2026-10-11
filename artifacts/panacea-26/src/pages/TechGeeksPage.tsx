@@ -97,15 +97,7 @@ export default function TechGeeksPage() {
                                 <ArrowUpRight size={14} />
                             </a>
 
-                            <a
-                                href="YOUR_PORTFOLIO_URL"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                <Code2 size={16} />
-                                <span>PORTFOLIO</span>
-                                <ArrowUpRight size={14} />
-                            </a>
+                        
                         </div>
                     </article>
                 </div>

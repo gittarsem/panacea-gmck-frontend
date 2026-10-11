@@ -21,7 +21,7 @@ import PanaceaNightsPage from "./pages/PanaceaNightsPage";
 import AboutPage from "./pages/AboutPage";
 import { Moon, Sun } from "lucide-react";
 import { savedEventsApi } from "./api/savedEventsApi";
-
+import { ShoppingCart } from "lucide-react";
 import {
     saveEvent,
     isEventSaved,
@@ -952,10 +952,10 @@ function Home() {
 
                         <Link
                             className="button paper"
-                            href="/schedule"
+                            href="/br-card"
                         >
-                            THE SCHEDULE
-                            <CalendarDays size={15} />
+                            Buy BR CARD
+                            <ShoppingCart size={15} />
                         </Link>
                     </div>
                 </div>

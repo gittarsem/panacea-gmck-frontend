@@ -418,7 +418,7 @@ export const organizers = [
   },
   {
     role: "Academic Secretary",
-    name: "Antrinksh",
+    name: "Antriksh",
   },
 ];
 
@@ -433,4 +433,4 @@ export const sportsOrganizers =
   "Waqar, Sarwar, Sameer, Sadaat, Shubankar, Sarthak, Manazir, Tajamul, Uzair, Ayash, Ifham, Jamid, Afaan, Hanan, Furkaan, Kuldeep Meena, Aryan, Abhi Pranav, Saar, Shoaib, Sanamphreet, Harshdeep";
 
 export const academicOrganizers =
-  "Antrinksh";
+  "Antriksh, Aditya, Tanya, Nitika";
