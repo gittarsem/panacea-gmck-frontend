@@ -24,8 +24,8 @@ const reveals: ArtistReveal[] = [
     artist: "RAJAT SOOD",
     event: "STAND-UP COMEDY",
     venue: "Main Stage · GMC Kathua College Campus",
-    meme: "/panacea-reveal-meme.png",
-    realImage: "/artist-image/rajat-sood.png",
+    meme: "https://res.cloudinary.com/da837ys3f/image/upload/v1791749126/panacea-reveal-meme.png",
+    realImage: "https://res.cloudinary.com/da837ys3f/image/upload/v1791749053/sdbs.jpg",
     hints: [
       "A voice that turns everyday chaos into a punchline.",
       "Known for observational comedy and sharp storytelling.",
@@ -40,7 +40,7 @@ const reveals: ArtistReveal[] = [
     artist: "SWATTREX",
     event: "EDM NIGHT",
     venue: "Main Stage · GMC Kathua College Campus",
-    realImage: "/artist-image/swattrex.png",
+    realImage: "https://res.cloudinary.com/da837ys3f/image/upload/v1791749082/swattrex.png",
     hints: [
       "Lights down. Volume up.",
       "Expect heavy drops and a completely different campus.",
@@ -55,7 +55,7 @@ const reveals: ArtistReveal[] = [
     artist: "RAUHAN MALIK",
     event: "HEADLINER CONCERT",
     venue: "Main Stage · GMC Kathua College Campus",
-    realImage: "/artist-image/rauhan.jpg",
+    realImage: "https://res.cloudinary.com/da837ys3f/image/upload/v1791748833/rauhan.jpg",
     hints: [
       "One night. One stage. One voice.",
       "The biggest concert night of PANACEA ’26.",
@@ -70,7 +70,7 @@ const reveals: ArtistReveal[] = [
     artist: "DHEERAJ MUSE",
     event: "QAWALI / SUFI NIGHT",
     venue: "Main Stage · GMC Kathua College Campus",
-    realImage: "/artist-image/dheeraj.png",
+    realImage: "https://res.cloudinary.com/da837ys3f/image/upload/v1791748965/dheeraj.jpg",
     hints: [
       "Four days of chaos. We end with something soulful.",
       "A night built around voice, rhythm and emotion.",
