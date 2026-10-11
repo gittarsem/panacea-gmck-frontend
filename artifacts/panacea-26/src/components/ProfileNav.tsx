@@ -66,9 +66,17 @@ export default function ProfileNav({
             className="mono"
             style={{
               padding: "15px 30px",
-              border: "1px solid #111",
+
+              // Use the current theme text color
+              // instead of hardcoded #111.
+              border: "1px solid currentColor",
+
               background: active ? "#111" : "transparent",
-              color: active ? "#f5eddf" : "#111",
+
+              // Active tab keeps the cream text.
+              // Inactive tab inherits the current theme color.
+              color: active ? "#f5eddf" : "inherit",
+
               cursor: "pointer",
               fontSize: 12,
               letterSpacing: "0.04em",

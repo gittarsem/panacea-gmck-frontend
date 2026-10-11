@@ -76,7 +76,11 @@ export default function BrCardPage() {
 
                 // Never show the purchase options again once a BR Card
                 // exists. The status page handles ₹1,000 -> ₹1,500 upgrade.
-                if (mounted && existingCard) {
+                if (
+                    mounted &&
+                    existingCard &&
+                    String(existingCard.status).toUpperCase() !== "REJECTED"
+                ) {
                     setLocation("/br-card/status");
                     return;
                 }
@@ -914,7 +918,7 @@ export default function BrCardPage() {
 
                                         passType ===
 
-                                        "without_accommodation"
+                                            "without_accommodation"
 
                                             ? "2px solid #111"
 
@@ -924,7 +928,7 @@ export default function BrCardPage() {
 
                                         passType ===
 
-                                        "without_accommodation"
+                                            "without_accommodation"
 
                                             ? "rgba(245,183,25,0.16)"
 
@@ -934,7 +938,7 @@ export default function BrCardPage() {
 
                                         passType ===
 
-                                        "without_accommodation"
+                                            "without_accommodation"
 
                                             ? "4px 4px 0 #111"
 
@@ -1080,7 +1084,7 @@ export default function BrCardPage() {
 
                                         passType ===
 
-                                        "with_accommodation"
+                                            "with_accommodation"
 
                                             ? "2px solid #111"
 
@@ -1090,7 +1094,7 @@ export default function BrCardPage() {
 
                                         passType ===
 
-                                        "with_accommodation"
+                                            "with_accommodation"
 
                                             ? "rgba(245,183,25,0.16)"
 
@@ -1100,7 +1104,7 @@ export default function BrCardPage() {
 
                                         passType ===
 
-                                        "with_accommodation"
+                                            "with_accommodation"
 
                                             ? "4px 4px 0 #111"
 
@@ -2032,7 +2036,7 @@ export default function BrCardPage() {
 
                                     user &&
 
-                                    !termsAccepted
+                                        !termsAccepted
 
                                         ? "#d8d2c5"
 
@@ -2042,7 +2046,7 @@ export default function BrCardPage() {
 
                                     user &&
 
-                                    !termsAccepted
+                                        !termsAccepted
 
                                         ? "#777"
 
@@ -2056,7 +2060,7 @@ export default function BrCardPage() {
 
                                     user &&
 
-                                    !termsAccepted
+                                        !termsAccepted
 
                                         ? "none"
 
@@ -2066,7 +2070,7 @@ export default function BrCardPage() {
 
                                     user &&
 
-                                    !termsAccepted
+                                        !termsAccepted
 
                                         ? "not-allowed"
 
@@ -2086,7 +2090,7 @@ export default function BrCardPage() {
 
                                     user &&
 
-                                    !termsAccepted
+                                        !termsAccepted
 
                                         ? 0.75
 

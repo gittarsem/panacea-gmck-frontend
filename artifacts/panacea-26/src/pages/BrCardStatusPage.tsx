@@ -1491,14 +1491,7 @@ Thank you.`
 
           <button
 
-            onClick={() =>
-              setLocation(
-                `/br-card/payment?type=${withAccommodation
-                  ? "with_accommodation"
-                  : "without_accommodation"
-                }`
-              )
-            }
+            onClick={() => setLocation("/br-card")}
 
             style={{
 
