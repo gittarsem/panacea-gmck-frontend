@@ -1492,9 +1492,12 @@ Thank you.`
           <button
 
             onClick={() =>
-
-              setLocation("/br-card")
-
+              setLocation(
+                `/br-card/payment?type=${withAccommodation
+                  ? "with_accommodation"
+                  : "without_accommodation"
+                }`
+              )
             }
 
             style={{
@@ -1907,7 +1910,7 @@ function ActiveBrCard({
                     gap: 10,
                     flexWrap: "wrap",
                     boxSizing: "border-box",
-        
+
 
                   }}
 
@@ -1968,7 +1971,7 @@ function ActiveBrCard({
                     gap: 12,
                     flexWrap: "wrap",
                     boxSizing: "border-box",
-                    
+
 
                   }}
 

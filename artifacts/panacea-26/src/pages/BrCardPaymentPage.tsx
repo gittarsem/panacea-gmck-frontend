@@ -37,7 +37,7 @@ export default function BrCardPaymentPage() {
   // Frontend maximum.
   // The backend will compress the image before sending it to Cloudinary.
   const MAX_SCREENSHOT_SIZE =
-    100 * 1024 * 1024;
+    20 * 1024 * 1024;
 
   const ALLOWED_IMAGE_TYPES = [
     "image/jpeg",
@@ -684,7 +684,7 @@ export default function BrCardPaymentPage() {
                         MAX_SCREENSHOT_SIZE
                       ) {
                         setError(
-                          "Payment screenshot must be 100 MB or smaller."
+                          "Payment screenshot must be 20 MB or smaller."
                         );
 
                         event.target.value =
