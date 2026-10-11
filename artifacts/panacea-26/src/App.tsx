@@ -1618,7 +1618,6 @@ function EventsPage() {
 /* =========================================================
    EVENT DETAIL
    ========================================================= */
-
 function EventDetail() {
     const { id } = useParams();
 
@@ -1626,7 +1625,7 @@ function EventDetail() {
         (event) => event.id === id
     );
 
-    const { demo, setDemo} = useDemo();
+    const { demo, setDemo } = useDemo();
 
     if (!event) {
         return (
@@ -1653,24 +1652,35 @@ function EventDetail() {
 
     const [saving, setSaving] =
         useState(false);
-    const toggleSave = async () => {
 
+
+    /* =========================================================
+     * SAVE / REMOVE EVENT FROM PANACEA PROFILE
+     *
+     * IMPORTANT:
+     * This function ONLY handles the PANACEA profile.
+     *
+     * It does NOT:
+     * - download an ICS file
+     * - open Google Calendar
+     * - interact with device calendar
+     * ========================================================= */
+
+    const saveToProfile = async () => {
         if (saving) {
             return;
         }
 
         try {
-
             setSaving(true);
 
             /*
              * =====================================================
-             * REMOVE EVENT
+             * REMOVE EVENT FROM PROFILE
              * =====================================================
              */
 
             if (saved) {
-
                 await savedEventsApi.remove(
                     event.id
                 );
@@ -1684,217 +1694,421 @@ function EventDetail() {
                 return;
             }
 
+
             /*
              * =====================================================
-             * SAVE EVENT TO BACKEND
+             * SAVE EVENT TO PROFILE
              * =====================================================
              */
 
             await savedEventsApi.save({
-
                 eventId: event.id,
-
                 name: event.name,
-
                 category: event.category,
-
                 type: event.type,
-
                 date: event.date,
-
                 time: event.time,
-
                 venue: event.venue,
-
                 description:
                     event.description,
             });
 
-            /*
-             * IMPORTANT:
-             *
-             * The event is now permanently stored
-             * against the logged-in user in the backend.
-             */
 
             setSaved(true);
 
-            /*
-             * =====================================================
-             * CREATE CALENDAR FILE
-             * =====================================================
-             *
-             * This remains separate from PANACEA saved schedule.
-             */
+            flash(
+                "Event saved to your PANACEA schedule."
+            );
+
+        } catch (error: any) {
+
+            console.error(
+                "Unable to update PANACEA schedule:",
+                error
+            );
+
+            flash(
+                error?.message ||
+                "Unable to update your PANACEA schedule."
+            );
+
+        } finally {
+
+            setSaving(false);
+        }
+    };
+
+
+    /* =========================================================
+     * PARSE EVENT DATE + TIME
+     *
+     * Used ONLY by calendar functions.
+     *
+     * IMPORTANT:
+     * This does NOT save anything to the PANACEA profile.
+     * ========================================================= */
+
+    const getCalendarDetails = () => {
+
+        /*
+         * Events without confirmed timing
+         * cannot be added to calendars.
+         */
+
+        if (
+            event.date.includes("TBA") ||
+            event.time.includes("TBA")
+        ) {
+            return null;
+        }
+
+
+        /*
+         * =====================================================
+         * PARSE DATE
+         * =====================================================
+         */
+
+        const normalizedDate =
+            event.date
+                .replace(/,/g, "")
+                .replace(/-/g, " ")
+                .trim();
+
+        const dateMatch =
+            normalizedDate.match(
+                /^(\d{1,2})\s+([A-Za-z]+)(?:\s+(\d{4}))?$/
+            );
+
+
+        if (!dateMatch) {
+            return null;
+        }
+
+
+        const months: Record<
+            string,
+            number
+        > = {
+
+            jan: 0,
+            feb: 1,
+            mar: 2,
+            apr: 3,
+            may: 4,
+            jun: 5,
+            jul: 6,
+            aug: 7,
+            sep: 8,
+            oct: 9,
+            nov: 10,
+            dec: 11,
+        };
+
+
+        const day =
+            Number(dateMatch[1]);
+
+
+        const monthKey =
+            dateMatch[2]
+                .slice(0, 3)
+                .toLowerCase();
+
+
+        const year =
+            Number(
+                dateMatch[3] ||
+                "2026"
+            );
+
+
+        const month =
+            months[monthKey];
+
+
+        if (month === undefined) {
+            return null;
+        }
+
+
+        /*
+         * =====================================================
+         * PARSE TIME
+         * =====================================================
+         */
+
+        const timeMatch =
+            event.time.match(
+                /^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i
+            );
+
+
+        let hours = 0;
+
+        let minutes = 0;
+
+
+        if (timeMatch) {
+
+            hours =
+                Number(
+                    timeMatch[1]
+                );
+
+            minutes =
+                Number(
+                    timeMatch[2] ||
+                    "0"
+                );
+
+
+            const meridiem =
+                timeMatch[3].toUpperCase();
+
 
             if (
-                event.date.includes("TBA") ||
-                event.time.includes("TBA")
+                meridiem === "PM" &&
+                hours !== 12
             ) {
+                hours += 12;
+            }
+
+
+            if (
+                meridiem === "AM" &&
+                hours === 12
+            ) {
+                hours = 0;
+            }
+        }
+
+
+        /*
+         * =====================================================
+         * CREATE START / END
+         * =====================================================
+         */
+
+        const start =
+            new Date(
+                year,
+                month,
+                day,
+                hours,
+                minutes
+            );
+
+
+        /*
+         * Existing behavior:
+         * Event duration = 90 minutes.
+         */
+
+        const end =
+            new Date(
+                start.getTime() +
+                90 * 60 * 1000
+            );
+
+
+        return {
+            start,
+            end,
+        };
+    };
+
+
+    /* =========================================================
+     * GOOGLE CALENDAR
+     *
+     * Completely independent from profile saving.
+     * ========================================================= */
+
+    const addToGoogleCalendar = () => {
+
+        try {
+
+            const calendarDetails =
+                getCalendarDetails();
+
+
+            if (!calendarDetails) {
 
                 flash(
-                    "Event saved to your PANACEA schedule. Event timing is still TBA."
+                    "Calendar timing is still being confirmed for this event."
                 );
 
                 return;
             }
 
-            /*
-             * =====================================================
-             * PARSE DATE
-             * =====================================================
-             */
 
-            const normalizedDate =
-                event.date
-                    .replace(/,/g, "")
-                    .replace(/-/g, " ")
-                    .trim();
+            const {
+                start,
+                end,
+            } = calendarDetails;
 
-            const dateMatch =
-                normalizedDate.match(
-                    /^(\d{1,2})\s+([A-Za-z]+)(?:\s+(\d{4}))?$/
-                );
 
             /*
-             * If date cannot be parsed,
-             * the backend save has already succeeded.
+             * Google Calendar requires:
+             *
+             * YYYYMMDDTHHMMSSZ
              */
 
-            if (!dateMatch) {
-
-                flash(
-                    "Event saved to your PANACEA schedule. Calendar date is still being confirmed."
-                );
-
-                return;
-            }
-
-            const months: Record<
-                string,
-                number
-            > = {
-
-                jan: 0,
-                feb: 1,
-                mar: 2,
-                apr: 3,
-                may: 4,
-                jun: 5,
-                jul: 6,
-                aug: 7,
-                sep: 8,
-                oct: 9,
-                nov: 10,
-                dec: 11,
-            };
-
-            const day =
-                Number(dateMatch[1]);
-
-            const monthKey =
-                dateMatch[2]
-                    .slice(0, 3)
-                    .toLowerCase();
-
-            const year =
-                Number(
-                    dateMatch[3] || "2026"
-                );
-
-            const month =
-                months[monthKey];
-
-            if (month === undefined) {
-
-                flash(
-                    "Event saved to your PANACEA schedule. Calendar date is still being confirmed."
-                );
-
-                return;
-            }
-
-            /*
-             * =====================================================
-             * PARSE TIME
-             * =====================================================
-             */
-
-            const timeMatch =
-                event.time.match(
-                    /^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i
-                );
-
-            let hours = 0;
-
-            let minutes = 0;
-
-            if (timeMatch) {
-
-                hours =
-                    Number(timeMatch[1]);
-
-                minutes =
-                    Number(
-                        timeMatch[2] || "0"
-                    );
-
-                const meridiem =
-                    timeMatch[3].toUpperCase();
-
-                if (
-                    meridiem === "PM" &&
-                    hours !== 12
-                ) {
-                    hours += 12;
-                }
-
-                if (
-                    meridiem === "AM" &&
-                    hours === 12
-                ) {
-                    hours = 0;
-                }
-            }
-
-            /*
-             * =====================================================
-             * CREATE CALENDAR EVENT
-             * =====================================================
-             */
-
-            const start =
-                new Date(
-                    year,
-                    month,
-                    day,
-                    hours,
-                    minutes
-                );
-
-            const end =
-                new Date(
-                    start.getTime() +
-                    90 * 60 * 1000
-                );
-
-            const calendarDate =
+            const formatGoogleDate =
                 (value: Date) =>
                     value
                         .toISOString()
-                        .replace(/[-:]/g, "")
+                        .replace(
+                            /[-:]/g,
+                            ""
+                        )
                         .replace(
                             /\.\d{3}Z$/,
                             "Z"
                         );
 
+
+            const params =
+                new URLSearchParams({
+
+                    action: "TEMPLATE",
+
+                    text:
+                        `PANACEA ’26 — ${event.name}`,
+
+                    dates:
+                        `${formatGoogleDate(start)}/${formatGoogleDate(end)}`,
+
+                    details:
+                        event.description ||
+                        "",
+
+                    location:
+                        event.venue ||
+                        "",
+                });
+
+
+            const googleCalendarUrl =
+                `https://calendar.google.com/calendar/render?${params.toString()}`;
+
+
+            /*
+             * Open Google Calendar in a new tab.
+             */
+
+            window.open(
+                googleCalendarUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+
+
+            flash(
+                "Google Calendar opened."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Unable to open Google Calendar:",
+                error
+            );
+
+            flash(
+                "Unable to open Google Calendar."
+            );
+        }
+    };
+
+
+    /* =========================================================
+     * DEVICE CALENDAR
+     *
+     * Creates an ICS file.
+     *
+     * Completely independent from:
+     * - PANACEA profile
+     * - Google Calendar
+     * ========================================================= */
+
+    const addToDeviceCalendar = () => {
+
+        try {
+
+            const calendarDetails =
+                getCalendarDetails();
+
+
+            if (!calendarDetails) {
+
+                flash(
+                    "Calendar timing is still being confirmed for this event."
+                );
+
+                return;
+            }
+
+
+            const {
+                start,
+                end,
+            } = calendarDetails;
+
+
+            /*
+             * =====================================================
+             * FORMAT ICS DATE
+             * =====================================================
+             */
+
+            const calendarDate =
+                (value: Date) =>
+                    value
+                        .toISOString()
+                        .replace(
+                            /[-:]/g,
+                            ""
+                        )
+                        .replace(
+                            /\.\d{3}Z$/,
+                            "Z"
+                        );
+
+
+            /*
+             * =====================================================
+             * ESCAPE ICS TEXT
+             * =====================================================
+             */
+
             const escapeIcs =
                 (value: string) =>
                     value
-                        .replace(/\\/g, "\\\\")
-                        .replace(/;/g, "\\;")
-                        .replace(/,/g, "\\,")
-                        .replace(/\n/g, "\\n");
+                        .replace(
+                            /\\/g,
+                            "\\\\"
+                        )
+                        .replace(
+                            /;/g,
+                            "\\;"
+                        )
+                        .replace(
+                            /,/g,
+                            "\\,"
+                        )
+                        .replace(
+                            /\n/g,
+                            "\\n"
+                        );
+
+
+            /*
+             * =====================================================
+             * CREATE ICS
+             * =====================================================
+             */
 
             const ics = [
 
@@ -1904,33 +2118,45 @@ function EventDetail() {
 
                 "PRODID:-//PANACEA 2026//EN",
 
+                "CALSCALE:GREGORIAN",
+
                 "BEGIN:VEVENT",
 
+
                 `UID:${event.id}-panacea-2026@gmckathua`,
+
 
                 `DTSTAMP:${calendarDate(
                     new Date()
                 )}`,
 
+
                 `DTSTART:${calendarDate(
                     start
                 )}`,
+
 
                 `DTEND:${calendarDate(
                     end
                 )}`,
 
+
                 `SUMMARY:${escapeIcs(
                     `PANACEA ’26 — ${event.name}`
                 )}`,
 
+
                 `DESCRIPTION:${escapeIcs(
-                    event.description
+                    event.description ||
+                    ""
                 )}`,
 
+
                 `LOCATION:${escapeIcs(
-                    event.venue
+                    event.venue ||
+                    ""
                 )}`,
+
 
                 "END:VEVENT",
 
@@ -1938,9 +2164,10 @@ function EventDetail() {
 
             ].join("\r\n");
 
+
             /*
              * =====================================================
-             * DOWNLOAD ICS
+             * DOWNLOAD ICS FILE
              * =====================================================
              */
 
@@ -1953,64 +2180,82 @@ function EventDetail() {
                     }
                 );
 
+
             const url =
-                URL.createObjectURL(blob);
+                URL.createObjectURL(
+                    blob
+                );
+
 
             const anchor =
-                document.createElement("a");
+                document.createElement(
+                    "a"
+                );
 
-            anchor.href = url;
+
+            anchor.href =
+                url;
+
 
             anchor.download =
                 `${event.id}-panacea-2026.ics`;
+
 
             document.body.appendChild(
                 anchor
             );
 
+
             anchor.click();
+
 
             anchor.remove();
 
-            URL.revokeObjectURL(url);
 
-            /*
-             * =====================================================
-             * SUCCESS
-             * =====================================================
-             */
-
-            flash(
-                "Event saved to your PANACEA schedule and calendar."
+            URL.revokeObjectURL(
+                url
             );
 
-        } catch (error: any) {
+
+            flash(
+                "Calendar file downloaded. Open it to add the event to your device calendar."
+            );
+
+        } catch (error) {
 
             console.error(
-                "Unable to save event:",
+                "Unable to create calendar file:",
                 error
             );
 
             flash(
-                error?.message ||
-                "Unable to save event."
+                "Unable to create the calendar file."
             );
-
-        } finally {
-
-            setSaving(false);
         }
     };
 
+
+    /* =========================================================
+     * UI
+     * ========================================================= */
+
     return (
         <main className="shell">
+
             <div className="page-intro">
+
                 <div className="eyebrow">
+
                     {event.category} / {event.type} /
                     PANACEA ’26
+
                 </div>
 
-                <h1>{event.name}</h1>
+
+                <h1>
+                    {event.name}
+                </h1>
+
 
                 <p
                     style={{
@@ -2021,7 +2266,9 @@ function EventDetail() {
                 >
                     {event.description}
                 </p>
+
             </div>
+
 
             <div
                 className="two-col"
@@ -2030,26 +2277,32 @@ function EventDetail() {
                     alignItems: "stretch",
                 }}
             >
+
                 <div
-                    className={`pass-wrap ${event.category === "Sports"
-                        ? "blue"
-                        : event.category ===
-                            "Academic"
-                            ? "yellow"
-                            : ""
-                        }`}
+                    className={`pass-wrap ${
+                        event.category === "Sports"
+                            ? "blue"
+                            : event.category ===
+                              "Academic"
+                                ? "yellow"
+                                : ""
+                    }`}
                     style={{
                         maxWidth: "none",
                         minHeight: 420,
                         display: "flex",
                         flexDirection: "column",
-                        justifyContent: "space-between",
+                        justifyContent:
+                            "space-between",
                     }}
                 >
+
                     <div>
+
                         <span className="mono">
                             PANACEA ’26 · EVENT FILE
                         </span>
+
 
                         <h2
                             style={{
@@ -2058,12 +2311,14 @@ function EventDetail() {
                                 lineHeight: 0.92,
                                 marginTop: 55,
                                 maxWidth: 560,
-                                position: "relative",
+                                position:
+                                    "relative",
                                 zIndex: 1,
                             }}
                         >
                             {event.name}
                         </h2>
+
 
                         <div
                             className="checker"
@@ -2072,30 +2327,40 @@ function EventDetail() {
                                 maxWidth: 430,
                             }}
                         />
+
                     </div>
+
 
                     <div
                         style={{
                             display: "flex",
                             justifyContent:
                                 "flex-end",
-                            position: "relative",
+                            position:
+                                "relative",
                             zIndex: 2,
                         }}
                     >
+
                         <ArrowDownRight
                             size={38}
                         />
+
                     </div>
+
                 </div>
+
 
                 <div
                     style={{
                         display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
+                        flexDirection:
+                            "column",
+                        justifyContent:
+                            "center",
                     }}
                 >
+
                     <h2
                         className="section-title"
                         style={{
@@ -2108,43 +2373,136 @@ function EventDetail() {
                         DETAILS.
                     </h2>
 
+
                     <Info
                         label="Date & time"
                         value={`${event.date} · ${event.time}`}
                     />
+
 
                     <Info
                         label="Venue"
                         value={event.venue}
                     />
 
+
+                    {/* =================================================
+                        ACTIONS
+                       ================================================= */}
+
                     <div
                         style={{
                             marginTop: 28,
+                            display: "flex",
+                            flexDirection:
+                                "column",
+                            gap: 12,
                         }}
                     >
+
+                        {/* =============================================
+                            SAVE TO PANACEA PROFILE
+                           ============================================= */}
+
                         <button
                             className="button paper"
-                            onClick={toggleSave}
+                            onClick={
+                                saveToProfile
+                            }
                             disabled={saving}
+                            type="button"
+                            style={{
+                                width: "100%",
+                            }}
                         >
+
                             {saving
                                 ? "SAVING..."
                                 : saved
-                                    ? "REMOVE FROM SCHEDULE"
-                                    : "ADD TO CALENDAR"}
+                                    ? "REMOVE FROM MY PROFILE"
+                                    : "SAVE TO MY PROFILE"}
 
                             <CalendarDays
                                 size={15}
                             />
+
                         </button>
+
+
+                        {/* =============================================
+                            EXTERNAL CALENDAR OPTIONS
+                           ============================================= */}
+
+                        <div
+                            style={{
+                                display:
+                                    "grid",
+                                gridTemplateColumns:
+                                    "repeat(2, minmax(0, 1fr))",
+                                gap: 10,
+                            }}
+                        >
+
+                            <button
+                                className="button"
+                                onClick={
+                                    addToDeviceCalendar
+                                }
+                                type="button"
+                                style={{
+                                    width:
+                                        "100%",
+                                    fontSize:
+                                        13,
+                                }}
+                            >
+                                DEVICE CALENDAR
+                            </button>
+
+
+                            <button
+                                className="button"
+                                onClick={
+                                    addToGoogleCalendar
+                                }
+                                type="button"
+                                style={{
+                                    width:
+                                        "100%",
+                                    fontSize:
+                                        13,
+                                }}
+                            >
+                                GOOGLE CALENDAR
+                            </button>
+
+                        </div>
+
+
+                        <p
+                            style={{
+                                margin: 0,
+                                fontSize: 12,
+                                lineHeight:
+                                    1.5,
+                                opacity:
+                                    0.65,
+                            }}
+                        >
+                            Save the event to your
+                            PANACEA profile or add it
+                            separately to your calendar.
+                        </p>
+
                     </div>
+
                 </div>
+
             </div>
+
         </main>
     );
 }
-
 /* =========================================================
    INFO
    ========================================================= */
