@@ -223,7 +223,7 @@ export const brCardApi = {
     async submitPayment(
         passType: BrCardPassType,
         transactionId: string,
-        screenshot: File
+        screenshot: File | null
     ): Promise<BrCardPaymentResponse> {
         try {
             const formData = new FormData();
@@ -238,10 +238,12 @@ export const brCardApi = {
                 transactionId.trim()
             );
 
-            formData.append(
-                "paymentScreenshot",
-                screenshot
-            );
+            if (screenshot) {
+                formData.append(
+                    "paymentScreenshot",
+                    screenshot
+                );
+            }
 
             const response =
                 await api.post<BrCardPaymentResponse>(
@@ -282,7 +284,7 @@ export const brCardApi = {
      */
     async submitUpgradePayment(
         transactionId: string,
-        screenshot: File
+        screenshot: File | null
     ): Promise<void> {
         try {
             const formData = new FormData();
@@ -292,10 +294,12 @@ export const brCardApi = {
                 transactionId.trim()
             );
 
-            formData.append(
-                "paymentScreenshot",
-                screenshot
-            );
+            if (screenshot) {
+                formData.append(
+                    "paymentScreenshot",
+                    screenshot
+                );
+            }
 
             await api.post(
                 "/api/br-cards/me/upgrade",
