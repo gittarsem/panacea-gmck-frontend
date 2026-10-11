@@ -3814,7 +3814,7 @@ html.dark .mobile-panel a {
   border-bottom-color: var(--border);
 }
 
-/* Inputs/selects/buttons should inherit the active theme. */
+/* Inputs/selects/buttons should inherit the active theme */
 html.dark button,
 html.dark input,
 html.dark select,
