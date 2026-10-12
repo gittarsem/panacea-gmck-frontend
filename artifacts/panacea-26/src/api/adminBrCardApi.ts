@@ -1,6 +1,6 @@
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://panacea-gmck-backend.onrender.com";
+  "http://localhost:8080";
 
 const TOKEN_KEY = "panacea_access_token";
 
