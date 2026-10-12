@@ -44,6 +44,8 @@ import {
     CalendarDays,
     ChevronDown,
     CircleUserRound,
+    Eye,
+    EyeOff,
     LogOut,
     MapPin,
     Menu,
@@ -2279,14 +2281,13 @@ function EventDetail() {
             >
 
                 <div
-                    className={`pass-wrap ${
-                        event.category === "Sports"
-                            ? "blue"
-                            : event.category ===
-                              "Academic"
-                                ? "yellow"
-                                : ""
-                    }`}
+                    className={`pass-wrap ${event.category === "Sports"
+                        ? "blue"
+                        : event.category ===
+                            "Academic"
+                            ? "yellow"
+                            : ""
+                        }`}
                     style={{
                         maxWidth: "none",
                         minHeight: 420,
@@ -4168,31 +4169,86 @@ function Field({
     | "email"
     | "url";
 }) {
+    const [showPassword, setShowPassword] = useState(false);
+
+    const isPassword = type === "password";
+
     return (
         <label>
             {label}
 
-            <input
-                type={type}
-                value={value}
-                placeholder={placeholder}
-                onChange={(event) =>
-                    onChange(
-                        event.target.value
-                    )
-                }
-                required={required}
-                maxLength={maxLength}
-                minLength={minLength}
-                inputMode={inputMode}
-                autoComplete={
-                    type === "password"
-                        ? "new-password"
-                        : type === "email"
-                            ? "email"
-                            : undefined
-                }
-            />
+            <div
+                style={{
+                    position: "relative",
+                    width: "100%",
+                }}
+            >
+                <input
+                    type={
+                        isPassword && showPassword
+                            ? "text"
+                            : type
+                    }
+                    value={value}
+                    placeholder={placeholder}
+                    onChange={(event) =>
+                        onChange(event.target.value)
+                    }
+                    required={required}
+                    maxLength={maxLength}
+                    minLength={minLength}
+                    inputMode={inputMode}
+                    autoComplete={
+                        type === "password"
+                            ? "new-password"
+                            : type === "email"
+                                ? "email"
+                                : undefined
+                    }
+                    style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                    }}
+                />
+
+                {isPassword && (
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowPassword((prev) => !prev)
+                        }
+                        aria-label={
+                            showPassword
+                                ? "Hide password"
+                                : "Show password"
+                        }
+                        style={{
+                            position: "absolute",
+                            right: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: "36px",
+                            height: "36px",
+                            padding: 0,
+                            margin: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "transparent",
+                            border: "none",
+                            color: "#111",
+                            cursor: "pointer",
+                            zIndex: 10,
+                        }}
+                    >
+                        {showPassword ? (
+                            <EyeOff size={22} color="#111" />
+                        ) : (
+                            <Eye size={22} color="#111" />
+                        )}
+                    </button>
+                )}
+            </div>
         </label>
     );
 }

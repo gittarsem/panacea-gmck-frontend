@@ -254,7 +254,7 @@ export function AuthProvider({
        * - Account not found
        * - Account disabled
        * - Backend validation message
-       * - Network error
+       * - Server error
        */
       throw createAuthError(
         error,
