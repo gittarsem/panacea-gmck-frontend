@@ -14,12 +14,27 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import BrCardPage from "./pages/BrCardPage";
+import BrCardUpgradePage from "./pages/BrCardUpgradePage";
+import TechGeeksPage from "./pages/TechGeeksPage";
+import PanaceaHeroArt from "./components/PanaceaHeroArt";
+import PanaceaNightsPage from "./pages/PanaceaNightsPage";
+import AboutPage from "./pages/AboutPage";
+import { Moon, Sun } from "lucide-react";
+import { savedEventsApi } from "./api/savedEventsApi";
+
+import {
+    saveEvent,
+    isEventSaved,
+} from "@/utils/savedEvents";
+
+
 import {
     Route,
     Switch,
     Link,
     useLocation,
     useParams,
+    useSearch,
     Router as WouterRouter,
 } from "wouter";
 
@@ -29,13 +44,14 @@ import {
     CalendarDays,
     ChevronDown,
     CircleUserRound,
+    LogOut,
     MapPin,
     Menu,
     Search,
     Ticket,
     X,
 } from "lucide-react";
-
+import ThemeToggle from "./components/ThemeToggle";
 import {
     events,
     categories,
@@ -56,6 +72,16 @@ import ProfileHome from "./pages/ProfileHome";
 import SavedPage from "./pages/SavedPage";
 import SettingsPage from "./pages/SettingsPage";
 import MyCards from "./pages/MyCards";
+
+import AdminGuard from "./components/AdminGuard";
+import AdminLayout from "./admin/AdminLayout";
+
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminBrCards from "./admin/pages/AdminBrCards";
+import AdminPayments from "./admin/pages/AdminPayments";
+import AdminScanner from "./admin/pages/AdminScanner";
+import AdminSettings from "./admin/pages/AdminSettings";
+import AdminManagement from "./admin/pages/AdminManagement";
 /* =========================================================
    DEMO / FESTIVAL STATE
    ========================================================= */
@@ -202,6 +228,8 @@ function App() {
                         <WouterRouter
                             base={import.meta.env.BASE_URL.replace(/\/$/, "")}
                         >
+                            <ScrollToTop />
+
                             <Router />
                         </WouterRouter>
 
@@ -214,7 +242,9 @@ function App() {
 
                                 <button
                                     aria-label="Dismiss notification"
-                                    onClick={() => setNotice("")}
+                                    onClick={() =>
+                                        setNotice("")
+                                    }
                                 >
                                     <X size={14} />
                                 </button>
@@ -229,74 +259,144 @@ function App() {
     );
 }
 
+function ScrollToTop() {
+    const [location] = useLocation();
+
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "smooth",
+        });
+    }, [location]);
+
+    return null;
+}
+
 /* =========================================================
    ROUTER
    ========================================================= */
 
 function Router() {
-  const [location] = useLocation();
+    const [location] = useLocation();
 
-  return (
-    <ErrorBoundary resetKey={location}>
-      <Layout />
+    const isAdminRoute =
+        location === "/admin" ||
+        location.startsWith("/admin/");
 
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/events" component={EventsPage} />
-        <Route path="/events/:id" component={EventDetail} />
-        <Route path="/schedule" component={SchedulePage} />
+    return (
+        <ErrorBoundary resetKey={location}>
+            <Layout />
 
-        <Route
-          path="/br-card"
-          component={BrCardPage}
-        />
+            <Switch>
+                <Route path="/" component={Home} />
+                <Route path="/events" component={EventsPage} />
+                <Route path="/events/:id" component={EventDetail} />
+                <Route path="/schedule" component={SchedulePage} />
+                <Route path="/panacea-nights" component={PanaceaNightsPage} />
+                <Route path="/br-card" component={BrCardPage} />
+                <Route path="/about" component={AboutPage} />
+                <Route
+                    path="/login"
+                    component={() => <AuthPage mode="login" />}
+                />
+                <Route
+                    path="/signup"
+                    component={() => <AuthPage mode="signup" />}
+                />
+                <Route path="/profile" component={ProfileHome} />
+                <Route
+                    path="/br-card/checkout"
+                    component={BrCardCheckoutPage}
+                />
+                <Route
+                    path="/br-card/payment"
+                    component={BrCardPaymentPage}
+                />
+                <Route
+                    path="/br-card/status"
+                    component={BrCardStatusPage}
+                />
 
-        <Route path="/about" component={AboutPage} />
+                <Route path="/tech-geeks" component={TechGeeksPage} />
 
-        <Route
-          path="/login"
-          component={() => (
-            <AuthPage mode="login" />
-          )}
-        />
+                <Route
+                    path="/admin"
+                    component={() => (
+                        <AdminGuard>
+                            <AdminLayout>
+                                <AdminDashboard />
+                            </AdminLayout>
+                        </AdminGuard>
+                    )}
+                />
 
-        <Route
-          path="/signup"
-          component={() => (
-            <AuthPage mode="signup" />
-          )}
-        />
+                <Route
+                    path="/admin/br-cards"
+                    component={() => (
+                        <AdminGuard>
+                            <AdminLayout>
+                                <AdminBrCards />
+                            </AdminLayout>
+                        </AdminGuard>
+                    )}
+                />
 
-        {/* PROFILE */}
-        <Route
-          path="/profile"
-          component={ProfileHome}
-        />
+                <Route
+                    path="/admin/payments"
+                    component={() => (
+                        <AdminGuard>
+                            <AdminLayout>
+                                <AdminPayments />
+                            </AdminLayout>
+                        </AdminGuard>
+                    )}
+                />
 
-        {/* BR CARD FLOW */}
-        <Route
-          path="/br-card/checkout"
-          component={BrCardCheckoutPage}
-        />
+                <Route
+                    path="/admin/scanner"
+                    component={() => (
+                        <AdminGuard>
+                            <AdminLayout>
+                                <AdminScanner />
+                            </AdminLayout>
+                        </AdminGuard>
+                    )}
+                />
+                <Route
+                    path="/admin/admins"
+                    component={() => (
+                        <AdminGuard>
+                            <AdminLayout>
+                                <AdminManagement />
+                            </AdminLayout>
+                        </AdminGuard>
+                    )}
+                />
 
-        <Route
-          path="/br-card/payment"
-          component={BrCardPaymentPage}
-        />
+                <Route
+                    path="/admin/settings"
+                    component={() => (
+                        <AdminGuard>
+                            <AdminLayout>
+                                <AdminSettings />
+                            </AdminLayout>
+                        </AdminGuard>
+                    )}
+                />
 
-        <Route
-          path="/br-card/status"
-          component={BrCardStatusPage}
-        />
+                <Route
+                    path="/br-card/upgrade"
+                    component={BrCardUpgradePage}
+                />
 
-        <Route component={NotFound} />
-      </Switch>
+                <Route component={NotFound} />
+            </Switch>
 
-      <Footer />
-    </ErrorBoundary>
-  );
+            {!isAdminRoute && <Footer />}
+        </ErrorBoundary>
+    );
 }
-
 /* =========================================================
    HEADER
    ========================================================= */
@@ -304,7 +404,10 @@ function Router() {
 function Layout() {
     const [open, setOpen] = useState(false);
 
-    const { user } = useAuth();
+    const {
+        user,
+        logout,
+    } = useAuth();
 
     const [loc] = useLocation();
 
@@ -312,24 +415,51 @@ function Layout() {
         ["Home", "/"],
         ["Events", "/events"],
         ["Schedule", "/schedule"],
+        ["PANACEA Nights", "/panacea-nights"],
         ["BR Card", "/br-card"],
-
         ["About", "/about"],
     ];
 
+    const isAdmin =
+        user &&
+        Array.isArray(user.roles) &&
+        user.roles.some(
+            (role: string) =>
+                role === "ROLE_ADMIN" ||
+                role === "ADMIN"
+        );
+
+    const handleLogout = async () => {
+        setOpen(false);
+
+        try {
+            await logout();
+        } finally {
+            window.location.href = "/";
+        }
+    };
+
     return (
         <header className="topbar">
+
+            {/* =================================================
+                BRAND
+            ================================================= */}
             <Link
                 className="brand"
                 href="/"
                 aria-label="PANACEA 26 home"
             >
                 PANACEA ’26
+
                 <small>
                     GMC KATHUA · 28—31 OCT
                 </small>
             </Link>
 
+            {/* =================================================
+                DESKTOP NAVIGATION
+            ================================================= */}
             <nav
                 className="navlinks"
                 aria-label="Main navigation"
@@ -338,7 +468,9 @@ function Layout() {
                     <Link
                         key={href}
                         className={
-                            loc === href ? "active" : ""
+                            loc === href
+                                ? "active"
+                                : ""
                         }
                         href={href}
                     >
@@ -347,57 +479,170 @@ function Layout() {
                 ))}
             </nav>
 
+            {/* =================================================
+                HEADER ACTIONS
+            ================================================= */}
             <div className="nav-actions">
-                <Link
-                    className="button ink"
-                    href={user ? "/profile" : "/login"}
-                >
-                    {user ? (
-                        <>
-                            <CircleUserRound size={15} />
-                            {user.fullName
-                                .split(" ")[0]
-                                .toUpperCase()}
-                        </>
-                    ) : (
-                        "LOGIN / SIGN UP"
-                    )}
-                </Link>
 
+                <div className="desktop-admin-actions">
+
+                    {/* ADMIN */}
+                    {isAdmin && (
+                        <Link
+                            className="button ink admin-nav-button"
+                            href="/admin"
+                        >
+                            ADMIN DASHBOARD
+                        </Link>
+                    )}
+
+                    {/* ACCOUNT */}
+                    <Link
+                        className="button ink desktop-account-button"
+                        href={
+                            user
+                                ? "/profile"
+                                : "/login"
+                        }
+                    >
+                        {user ? (
+                            <>
+                                <CircleUserRound
+                                    size={15}
+                                />
+
+                                {user.fullName
+                                    .split(" ")[0]
+                                    .toUpperCase()}
+                            </>
+                        ) : (
+                            "LOGIN / SIGN UP"
+                        )}
+                    </Link>
+
+                    {/* LOGOUT */}
+                    {user && (
+                        <button
+                            type="button"
+                            className="header-logout"
+                            onClick={
+                                handleLogout
+                            }
+                            aria-label="Logout"
+                            title="Logout"
+                        >
+                            <LogOut
+                                size={15}
+                            />
+
+                            <span>
+                                LOGOUT
+                            </span>
+                        </button>
+                    )}
+
+                    {/* THEME */}
+                    <ThemeToggle />
+
+                </div>
+
+                {/* MOBILE MENU BUTTON */}
                 <button
+                    type="button"
                     className="mobile-toggle"
                     aria-label={
-                        open ? "Close menu" : "Open menu"
+                        open
+                            ? "Close menu"
+                            : "Open menu"
                     }
-                    onClick={() => setOpen(!open)}
+                    aria-expanded={open}
+                    onClick={() =>
+                        setOpen(
+                            (value) =>
+                                !value
+                        )
+                    }
                 >
-                    {open ? <X /> : <Menu />}
+                    {open ? (
+                        <X />
+                    ) : (
+                        <Menu />
+                    )}
                 </button>
             </div>
 
+            {/* =================================================
+                MOBILE MENU
+            ================================================= */}
             {open && (
                 <nav
                     className="mobile-panel"
                     aria-label="Mobile navigation"
                 >
-                    {links.map(([name, href]) => (
-                        <Link
-                            key={href}
-                            href={href}
-                            onClick={() => setOpen(false)}
-                        >
-                            {name.toUpperCase()}
-                        </Link>
-                    ))}
+                    {links.map(
+                        ([name, href]) => (
+                            <Link
+                                key={href}
+                                href={href}
+                                onClick={() =>
+                                    setOpen(false)
+                                }
+                            >
+                                {name.toUpperCase()}
+                            </Link>
+                        )
+                    )}
 
                     <Link
-                        href={user ? "/profile" : "/login"}
-                        onClick={() => setOpen(false)}
+                        href={
+                            user
+                                ? "/profile"
+                                : "/login"
+                        }
+                        onClick={() =>
+                            setOpen(false)
+                        }
                     >
                         {user
                             ? "MY PANACEA"
                             : "LOGIN / SIGN UP"}
                     </Link>
+
+                    {isAdmin && (
+                        <Link
+                            href="/admin"
+                            onClick={() =>
+                                setOpen(false)
+                            }
+                        >
+                            ADMIN DASHBOARD
+                        </Link>
+                    )}
+
+                    {/* MOBILE THEME + LOGOUT */}
+                    <div className="mobile-theme">
+
+                        <ThemeToggle />
+
+                        {user && (
+                            <button
+                                type="button"
+                                className="header-logout mobile-logout"
+                                onClick={
+                                    handleLogout
+                                }
+                            >
+                                <LogOut
+                                    size={15}
+                                />
+
+                                <span>
+                                    LOGOUT
+                                </span>
+                            </button>
+                        )}
+
+                    </div>
                 </nav>
             )}
         </header>
@@ -410,39 +655,95 @@ function Layout() {
 
 function Footer() {
     return (
-        <footer className="footer">
-            <div className="shell footer-grid">
-                <div>
+        <footer className="panacea-footer">
+            <style>{`
+                .panacea-footer{background:#0d0c0c;color:#f3ebd8;border-top:6px solid #ff4f83;margin-top:0}
+                .panacea-footer a{color:inherit;text-decoration:none}
+                .panacea-footer-cta{padding:92px 0 96px;border-bottom:1px solid rgba(243,235,216,.2)}
+                .panacea-footer-cta-inner{display:grid;grid-template-columns:1.1fr .9fr;gap:80px;align-items:end}
+                .panacea-footer-kicker{font-size:12px;letter-spacing:.16em;margin-bottom:24px}
+                .panacea-footer-title{margin:0;font:clamp(58px,7vw,112px) 'Archivo Black';line-height:.84;letter-spacing:-.055em}
+                .panacea-footer-cta-right{max-width:520px}
+                .panacea-footer-cta-right p{margin:0 0 28px;font-size:17px;line-height:1.6;color:rgba(243,235,216,.84)}
+                .panacea-footer-actions{display:flex;gap:12px;flex-wrap:wrap}
+                .panacea-footer-main{display:grid;grid-template-columns:1.45fr .85fr .85fr 1fr;gap:55px;padding-top:70px;padding-bottom:70px}
+                .panacea-footer-brand{display:flex;flex-direction:column;align-items:flex-start}
+                .panacea-footer-logo{display:inline-flex;align-items:baseline;gap:6px;padding:10px 15px;background:#ff4f83;color:#11100f!important;border:2px solid #f3ebd8;box-shadow:5px 5px 0 #f3ebd8;margin-bottom:23px}
+                .panacea-footer-logo strong{font:29px 'Archivo Black';letter-spacing:-.06em}
+                .panacea-footer-logo span{font:17px 'Archivo Black'}
+                .panacea-footer-brand-info{display:flex;flex-direction:column;gap:8px}
+                .panacea-footer-brand-info .mono{font-size:9px;letter-spacing:.13em;color:rgba(243,235,216,.65)}
+                .panacea-footer-brand-info p{margin:0;font-size:16px;line-height:1.4}
+                .panacea-footer-column{display:flex;flex-direction:column;align-items:flex-start;gap:13px}
+                .panacea-footer-column h3{margin:0 0 8px;font:14px 'DM Mono';text-transform:uppercase;letter-spacing:.13em}
+                .panacea-footer-column a{font:13px 'DM Sans';color:rgba(243,235,216,.82);transition:color .18s,transform .18s}
+                .panacea-footer-column a:hover{color:#ff4f83;transform:translateX(4px)}
+                .panacea-footer-contact p{margin:0 0 4px;font-size:13px;line-height:1.55;color:rgba(243,235,216,.78)}
+                .panacea-footer-instagram{margin-top:7px;padding:10px 13px;border:2px solid rgba(243,235,216,.3)!important;font:10px 'DM Mono'!important;letter-spacing:.08em}
+                .panacea-footer-instagram:hover{background:#ff4f83;color:#11100f!important;border-color:#ff4f83!important;transform:none!important}
+                .panacea-footer-bottom{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;min-height:76px;border-top:1px solid rgba(243,235,216,.2);font:10px 'DM Mono';letter-spacing:.07em}
+                .panacea-footer-copy{color:rgba(243,235,216,.72)}
+                .panacea-footer-bottom-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+                .panacea-footer-bottom-links a{color:rgba(243,235,216,.7)}
+                .panacea-footer-bottom-links a:hover{color:#ff4f83}
+                .panacea-footer-credit{justify-self:end;color:#f3ebd8;text-decoration:underline;text-underline-offset:5px;font-weight:700}
+                .panacea-footer-credit span{display:inline-block;margin-left:5px;transition:transform .18s}
+                .panacea-footer-credit:hover{color:#ff4f83}
+                .panacea-footer-credit:hover span{transform:translateX(5px)}
+                @media(max-width:900px){
+                    .panacea-footer-cta-inner{grid-template-columns:1fr;gap:40px}
+                    .panacea-footer-main{grid-template-columns:1fr 1fr;gap:45px 30px}
+                    .panacea-footer-brand{grid-column:1/-1}
+                    .panacea-footer-bottom{grid-template-columns:1fr;justify-items:start;padding:24px 0}
+                    .panacea-footer-bottom-links{justify-content:flex-start}
+                    .panacea-footer-credit{justify-self:start}
+                }
+                @media(max-width:600px){
+                    .panacea-footer-cta{padding:65px 0 70px}
+                    .panacea-footer-title{font-size:clamp(48px,15vw,76px)}
+                    .panacea-footer-cta-right p{font-size:15px}
+                    .panacea-footer-main{grid-template-columns:1fr;padding-top:55px;padding-bottom:55px}
+                    .panacea-footer-brand{grid-column:auto}
+                }
+            `}</style>
+
+            <section className="panacea-footer-main shell">
+                <div className="panacea-footer-brand">
                     <Link
-                        className="brand"
                         href="/"
+                        className="panacea-footer-logo"
                     >
-                        PANACEA ’26
-                        <small>
-                            GOVERNMENT MEDICAL COLLEGE, KATHUA
-                        </small>
+                        <strong>PANACEA</strong>
+                        <span>’26</span>
                     </Link>
 
-                    <p
-                        style={{
-                            maxWidth: 330,
-                            lineHeight: 1.6,
-                        }}
-                    >
-                        Culture · Chaos · Crescendo
-                        <br />
-                        28—31 October 2026
-                    </p>
+                    <div className="panacea-footer-brand-info">
+                        <span className="mono">
+                            GOVERNMENT MEDICAL COLLEGE, KATHUA
+                        </span>
+
+                        <p>
+                            Culture · Chaos · Crescendo
+                        </p>
+
+                        <p>
+                            28—31 October 2026
+                        </p>
+                    </div>
 
                     <span className="sticker">
                         FOUR DAYS. COUNTLESS MEMORIES.
                     </span>
                 </div>
 
-                <div>
-                    <span className="mono">
-                        Find your way
-                    </span>
+                <nav className="panacea-footer-column">
+                    <h3 className="mono">
+                        EXPLORE
+                    </h3>
+
+                    <Link href="/about">
+                        About PANACEA
+                    </Link>
 
                     <Link href="/events">
                         Events
@@ -452,28 +753,142 @@ function Footer() {
                         Schedule
                     </Link>
 
-                    <Link href="/about">
-                        About the fest
-                    </Link>
-                </div>
-
-                <div>
-                    <span className="mono">
-                        Passes & support
-                    </span>
-
                     <Link href="/br-card">
                         BR Card
                     </Link>
+                </nav>
 
-                    <Link href="/delegate-card">
-                        Delegate Card
+                <nav className="panacea-footer-column">
+                    <h3 className="mono">
+                        FESTIVAL
+                    </h3>
+
+                    <Link href="/events?category=Cultural"
+                        onClick={() => {
+                            window.scrollTo({
+                                top: 0,
+                                left: 0,
+                                behavior: "smooth",
+                            });
+                        }}
+                    >
+                        Cultural
                     </Link>
 
-                    <span className="mono">
-                        Contact · Details TBA
-                    </span>
+                    <Link href="/events?category=Sports"
+                        onClick={() => {
+                            window.scrollTo({
+                                top: 0,
+                                left: 0,
+                                behavior: "smooth",
+                            });
+                        }}
+                    >
+                        Sports
+                    </Link>
+
+                    <Link href="/events?category=Academic"
+                        onClick={() => {
+                            window.scrollTo({
+                                top: 0,
+                                left: 0,
+                                behavior: "smooth",
+                            });
+                        }}
+                    >
+                        Academic
+                    </Link>
+
+                    <Link href="/events?category=Pro+Shows"
+                        onClick={() => {
+                            window.scrollTo({
+                                top: 0,
+                                left: 0,
+                                behavior: "smooth",
+                            });
+                        }}
+                    >
+                        Pro Shows
+                    </Link>
+
+                    <Link href="/panacea-nights"
+                        onClick={() => {
+                            window.scrollTo({
+                                top: 0,
+                                left: 0,
+                                behavior: "smooth",
+                            });
+                        }}
+                    >
+                        PANACEA Nights
+                    </Link>
+                </nav>
+
+                <div className="panacea-footer-column panacea-footer-contact">
+                    <h3 className="mono">
+                        CONTACT
+                    </h3>
+
+                    <p>
+                        Government Medical College,
+                        <br />
+                        Kathua, Jammu & Kashmir
+                    </p>
+
+                    <a href="tel:9682391837">
+                        Aryeen Sharma
+                        <br />
+                        9682391837
+                    </a>
+
+                    <a href="tel:9797454951">
+                        Faizan Malik
+                        <br />
+                        9797454951
+                    </a>
+
+                    <a
+                        href="https://instagram.com/panacea.gmck"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="panacea-footer-instagram"
+                    >
+                        @PANACEA.GMCK →
+                    </a>
                 </div>
+            </section>
+
+            <div className="panacea-footer-bottom shell">
+                <div className="panacea-footer-copy">
+                    © 2026 PANACEA · GMC KATHUA
+                </div>
+
+                <nav className="panacea-footer-bottom-links">
+                    <Link href="/events">
+                        EVENTS
+                    </Link>
+
+                    <Link href="/schedule">
+                        SCHEDULE
+                    </Link>
+
+                    <Link href="/br-card">
+                        BR CARD
+                    </Link>
+
+                    <Link href="/about">
+                        ABOUT
+                    </Link>
+
+
+                </nav>
+
+                <Link
+                    href="/tech-geeks"
+                    className="panacea-footer-credit"
+                >
+                    MADE BY TECH GEEKS <span>→</span>
+                </Link>
             </div>
         </footer>
     );
@@ -545,41 +960,7 @@ function Home() {
                     </div>
                 </div>
 
-                <div
-                    className="hero-art"
-                    aria-label="Illustrated festival guitar, eyes and mushrooms"
-                >
-                    <span className="sunburst">
-                        ✳
-                    </span>
-
-                    <span
-                        className="eye one"
-                        aria-hidden="true"
-                    >
-                        ◉
-                    </span>
-
-                    <span
-                        className="eye two"
-                        aria-hidden="true"
-                    >
-                        ◉
-                    </span>
-
-                    <div className="guitar" />
-                    <div className="mushroom" />
-
-                    <div
-                        className="checker"
-                        style={{
-                            position: "absolute",
-                            bottom: 5,
-                            left: "-20%",
-                            right: "-20%",
-                        }}
-                    />
-                </div>
+                <PanaceaHeroArt />
             </section>
 
             <div className="ticker">
@@ -1011,19 +1392,26 @@ function EventsPage() {
     const [status, setStatus] = useState("All");
 
     const [loc] = useLocation();
+    const searchParams = useSearch();
 
     const { demo } = useDemo();
 
     useEffect(() => {
-        const categoryParam =
-            new URLSearchParams(
-                window.location.search
-            ).get("category");
+        const categoryParam = new URLSearchParams(
+            searchParams
+        ).get("category");
 
-        if (categoryParam) {
+        if (
+            categoryParam &&
+            categories.some(
+                (item) => item.name === categoryParam
+            )
+        ) {
             setCategory(categoryParam);
+        } else {
+            setCategory("All");
         }
-    }, [loc]);
+    }, [searchParams]);
 
     const filtered = useMemo(
         () =>
@@ -1234,19 +1622,11 @@ function EventsPage() {
 function EventDetail() {
     const { id } = useParams();
 
-    const [, setLoc] = useLocation();
-
     const event = events.find(
         (event) => event.id === id
     );
 
-    const { user } = useAuth();
-
-    const {
-        demo,
-        setDemo,
-        flash,
-    } = useDemo();
+    const { demo, setDemo} = useDemo();
 
     if (!event) {
         return (
@@ -1266,68 +1646,360 @@ function EventDetail() {
         );
     }
 
-    const registered =
-        demo.registrations.includes(event.id);
+    const { flash } = useDemo();
 
-    const saved =
-        demo.saved.includes(event.id);
+    const [saved, setSaved] =
+        useState(false);
 
-    const register = () => {
-        if (!user) {
-            flash(
-                "Please log in before registering for an event."
-            );
+    const [saving, setSaving] =
+        useState(false);
+    const toggleSave = async () => {
 
-            setLoc("/login");
+        if (saving) {
             return;
         }
 
-        setDemo({
-            ...demo,
-            registrations: registered
-                ? demo.registrations.filter(
-                    (value) => value !== event.id
-                )
-                : [
-                    ...demo.registrations,
-                    event.id,
-                ],
-        });
+        try {
 
-        flash(
-            registered
-                ? "Event registration removed."
-                : "Event registration saved."
-        );
-    };
+            setSaving(true);
 
-    const toggleSave = () => {
-        if (!user) {
-            flash(
-                "Please log in to save events."
+            /*
+             * =====================================================
+             * REMOVE EVENT
+             * =====================================================
+             */
+
+            if (saved) {
+
+                await savedEventsApi.remove(
+                    event.id
+                );
+
+                setSaved(false);
+
+                flash(
+                    "Removed from your PANACEA schedule."
+                );
+
+                return;
+            }
+
+            /*
+             * =====================================================
+             * SAVE EVENT TO BACKEND
+             * =====================================================
+             */
+
+            await savedEventsApi.save({
+
+                eventId: event.id,
+
+                name: event.name,
+
+                category: event.category,
+
+                type: event.type,
+
+                date: event.date,
+
+                time: event.time,
+
+                venue: event.venue,
+
+                description:
+                    event.description,
+            });
+
+            /*
+             * IMPORTANT:
+             *
+             * The event is now permanently stored
+             * against the logged-in user in the backend.
+             */
+
+            setSaved(true);
+
+            /*
+             * =====================================================
+             * CREATE CALENDAR FILE
+             * =====================================================
+             *
+             * This remains separate from PANACEA saved schedule.
+             */
+
+            if (
+                event.date.includes("TBA") ||
+                event.time.includes("TBA")
+            ) {
+
+                flash(
+                    "Event saved to your PANACEA schedule. Event timing is still TBA."
+                );
+
+                return;
+            }
+
+            /*
+             * =====================================================
+             * PARSE DATE
+             * =====================================================
+             */
+
+            const normalizedDate =
+                event.date
+                    .replace(/,/g, "")
+                    .replace(/-/g, " ")
+                    .trim();
+
+            const dateMatch =
+                normalizedDate.match(
+                    /^(\d{1,2})\s+([A-Za-z]+)(?:\s+(\d{4}))?$/
+                );
+
+            /*
+             * If date cannot be parsed,
+             * the backend save has already succeeded.
+             */
+
+            if (!dateMatch) {
+
+                flash(
+                    "Event saved to your PANACEA schedule. Calendar date is still being confirmed."
+                );
+
+                return;
+            }
+
+            const months: Record<
+                string,
+                number
+            > = {
+
+                jan: 0,
+                feb: 1,
+                mar: 2,
+                apr: 3,
+                may: 4,
+                jun: 5,
+                jul: 6,
+                aug: 7,
+                sep: 8,
+                oct: 9,
+                nov: 10,
+                dec: 11,
+            };
+
+            const day =
+                Number(dateMatch[1]);
+
+            const monthKey =
+                dateMatch[2]
+                    .slice(0, 3)
+                    .toLowerCase();
+
+            const year =
+                Number(
+                    dateMatch[3] || "2026"
+                );
+
+            const month =
+                months[monthKey];
+
+            if (month === undefined) {
+
+                flash(
+                    "Event saved to your PANACEA schedule. Calendar date is still being confirmed."
+                );
+
+                return;
+            }
+
+            /*
+             * =====================================================
+             * PARSE TIME
+             * =====================================================
+             */
+
+            const timeMatch =
+                event.time.match(
+                    /^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i
+                );
+
+            let hours = 0;
+
+            let minutes = 0;
+
+            if (timeMatch) {
+
+                hours =
+                    Number(timeMatch[1]);
+
+                minutes =
+                    Number(
+                        timeMatch[2] || "0"
+                    );
+
+                const meridiem =
+                    timeMatch[3].toUpperCase();
+
+                if (
+                    meridiem === "PM" &&
+                    hours !== 12
+                ) {
+                    hours += 12;
+                }
+
+                if (
+                    meridiem === "AM" &&
+                    hours === 12
+                ) {
+                    hours = 0;
+                }
+            }
+
+            /*
+             * =====================================================
+             * CREATE CALENDAR EVENT
+             * =====================================================
+             */
+
+            const start =
+                new Date(
+                    year,
+                    month,
+                    day,
+                    hours,
+                    minutes
+                );
+
+            const end =
+                new Date(
+                    start.getTime() +
+                    90 * 60 * 1000
+                );
+
+            const calendarDate =
+                (value: Date) =>
+                    value
+                        .toISOString()
+                        .replace(/[-:]/g, "")
+                        .replace(
+                            /\.\d{3}Z$/,
+                            "Z"
+                        );
+
+            const escapeIcs =
+                (value: string) =>
+                    value
+                        .replace(/\\/g, "\\\\")
+                        .replace(/;/g, "\\;")
+                        .replace(/,/g, "\\,")
+                        .replace(/\n/g, "\\n");
+
+            const ics = [
+
+                "BEGIN:VCALENDAR",
+
+                "VERSION:2.0",
+
+                "PRODID:-//PANACEA 2026//EN",
+
+                "BEGIN:VEVENT",
+
+                `UID:${event.id}-panacea-2026@gmckathua`,
+
+                `DTSTAMP:${calendarDate(
+                    new Date()
+                )}`,
+
+                `DTSTART:${calendarDate(
+                    start
+                )}`,
+
+                `DTEND:${calendarDate(
+                    end
+                )}`,
+
+                `SUMMARY:${escapeIcs(
+                    `PANACEA ’26 — ${event.name}`
+                )}`,
+
+                `DESCRIPTION:${escapeIcs(
+                    event.description
+                )}`,
+
+                `LOCATION:${escapeIcs(
+                    event.venue
+                )}`,
+
+                "END:VEVENT",
+
+                "END:VCALENDAR",
+
+            ].join("\r\n");
+
+            /*
+             * =====================================================
+             * DOWNLOAD ICS
+             * =====================================================
+             */
+
+            const blob =
+                new Blob(
+                    [ics],
+                    {
+                        type:
+                            "text/calendar;charset=utf-8",
+                    }
+                );
+
+            const url =
+                URL.createObjectURL(blob);
+
+            const anchor =
+                document.createElement("a");
+
+            anchor.href = url;
+
+            anchor.download =
+                `${event.id}-panacea-2026.ics`;
+
+            document.body.appendChild(
+                anchor
             );
 
-            setLoc("/login");
-            return;
+            anchor.click();
+
+            anchor.remove();
+
+            URL.revokeObjectURL(url);
+
+            /*
+             * =====================================================
+             * SUCCESS
+             * =====================================================
+             */
+
+            flash(
+                "Event saved to your PANACEA schedule and calendar."
+            );
+
+        } catch (error: any) {
+
+            console.error(
+                "Unable to save event:",
+                error
+            );
+
+            flash(
+                error?.message ||
+                "Unable to save event."
+            );
+
+        } finally {
+
+            setSaving(false);
         }
-
-        setDemo({
-            ...demo,
-            saved: saved
-                ? demo.saved.filter(
-                    (value) => value !== event.id
-                )
-                : [
-                    ...demo.saved,
-                    event.id,
-                ],
-        });
-
-        flash(
-            saved
-                ? "Removed from your schedule."
-                : "Saved to your schedule."
-        );
     };
 
     return (
@@ -1342,76 +2014,94 @@ function EventDetail() {
 
                 <p
                     style={{
-                        maxWidth: 660,
+                        maxWidth: 720,
                         fontSize: 18,
                         lineHeight: 1.6,
                     }}
                 >
                     {event.description}
                 </p>
-
-                <span className="sticker">
-                    DETAILS BEING CONFIRMED
-                </span>
             </div>
 
             <div
                 className="two-col"
-                style={{ paddingBottom: 80 }}
+                style={{
+                    paddingBottom: 90,
+                    alignItems: "stretch",
+                }}
             >
                 <div
                     className={`pass-wrap ${event.category === "Sports"
                         ? "blue"
-                        : event.category === "Academic"
+                        : event.category ===
+                            "Academic"
                             ? "yellow"
                             : ""
                         }`}
+                    style={{
+                        maxWidth: "none",
+                        minHeight: 420,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                    }}
                 >
-                    <span className="mono">
-                        PANACEA ’26 · EVENT FILE
-                    </span>
+                    <div>
+                        <span className="mono">
+                            PANACEA ’26 · EVENT FILE
+                        </span>
 
-                    <h2
-                        style={{
-                            fontSize:
-                                "clamp(40px,8vw,82px)",
-                            marginTop: 42,
-                        }}
-                    >
-                        {event.name}
-                    </h2>
+                        <h2
+                            style={{
+                                fontSize:
+                                    "clamp(42px, 5.5vw, 72px)",
+                                lineHeight: 0.92,
+                                marginTop: 55,
+                                maxWidth: 560,
+                                position: "relative",
+                                zIndex: 1,
+                            }}
+                        >
+                            {event.name}
+                        </h2>
+
+                        <div
+                            className="checker"
+                            style={{
+                                marginTop: 45,
+                                maxWidth: 430,
+                            }}
+                        />
+                    </div>
 
                     <div
-                        className="checker"
-                        style={{ marginTop: 35 }}
-                    />
-
-                    <div className="pass-bottom">
-                        <div>
-                            <div
-                                className="mono"
-                                style={{ fontSize: 10 }}
-                            >
-                                DATE / TIME / VENUE
-                            </div>
-
-                            <p>
-                                {event.date}
-                                <br />
-                                {event.time}
-                                <br />
-                                {event.venue}
-                            </p>
-                        </div>
-
-                        <ArrowDownRight size={34} />
+                        style={{
+                            display: "flex",
+                            justifyContent:
+                                "flex-end",
+                            position: "relative",
+                            zIndex: 2,
+                        }}
+                    >
+                        <ArrowDownRight
+                            size={38}
+                        />
                     </div>
                 </div>
 
-                <div>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                    }}
+                >
                     <h2
                         className="section-title"
-                        style={{ fontSize: 38 }}
+                        style={{
+                            fontSize: 40,
+                            marginBottom: 20,
+                        }}
                     >
                         THE
                         <br />
@@ -1428,59 +2118,25 @@ function EventDetail() {
                         value={event.venue}
                     />
 
-                    <Info
-                        label="Eligibility"
-                        value={event.eligibility}
-                    />
-
-                    <Info
-                        label="Team size"
-                        value={event.team}
-                    />
-
-                    <Info
-                        label="Registration fee"
-                        value={event.fee}
-                    />
-
-                    <Info
-                        label="Organizer"
-                        value={`${event.organizer} · contact details TBA`}
-                    />
-
-                    <Info
-                        label="Rules & instructions"
-                        value={event.rules}
-                    />
-
                     <div
                         style={{
-                            display: "flex",
-                            gap: 12,
-                            flexWrap: "wrap",
-                            marginTop: 25,
+                            marginTop: 28,
                         }}
                     >
                         <button
-                            className="button"
-                            onClick={register}
-                        >
-                            {registered
-                                ? "CANCEL REGISTRATION"
-                                : "REGISTER FOR EVENT"}
-
-                            <ArrowRight size={15} />
-                        </button>
-
-                        <button
                             className="button paper"
                             onClick={toggleSave}
+                            disabled={saving}
                         >
-                            {saved
-                                ? "REMOVE FROM SCHEDULE"
-                                : "ADD TO SCHEDULE"}
+                            {saving
+                                ? "SAVING..."
+                                : saved
+                                    ? "REMOVE FROM SCHEDULE"
+                                    : "ADD TO CALENDAR"}
 
-                            <CalendarDays size={15} />
+                            <CalendarDays
+                                size={15}
+                            />
                         </button>
                     </div>
                 </div>
@@ -1522,140 +2178,350 @@ function Info({
     );
 }
 
-/* =========================================================
-   SCHEDULE
-   ========================================================= */
 
 function SchedulePage() {
     const [day, setDay] = useState(0);
 
+    const scheduleDays = [
+        {
+            date: "28 OCT",
+            fullDate: "28 OCTOBER 2026",
+            number: "01",
+            events: [
+                {
+                    name: "Art Battle",
+                    time: "12:00 PM",
+                    venue: "Lecture Hall",
+                    category: "Cultural",
+                },
+                {
+                    name: "Dance Competition",
+                    time: "5:00 PM",
+                    venue: "Main Stage",
+                    category: "Cultural",
+                },
+                {
+                    name: "Surgical Skills Workshop",
+                    time: "TBA",
+                    venue: "Lecture Hall 1 & 2",
+                    category: "Academic",
+                },
+                {
+                    name: "Comedy Night",
+                    time: "TBA",
+                    venue: "Main Stage · GMC Kathua College Campus",
+                    category: "Pro Shows",
+                    headliner: true,
+                },
+            ],
+        },
+        {
+            date: "29 OCT",
+            fullDate: "29 OCTOBER 2026",
+            number: "02",
+            events: [
+                {
+                    name: "Singing Competition",
+                    time: "6:00 PM",
+                    venue: "Main Stage",
+                    category: "Cultural",
+                },
+                {
+                    name: "EDM Night",
+                    time: "TBA",
+                    venue: "Main Stage · GMC Kathua College Campus",
+                    category: "Pro Shows",
+                    headliner: true,
+                },
+            ],
+        },
+        {
+            date: "30 OCT",
+            fullDate: "30 OCTOBER 2026",
+            number: "03",
+            events: [
+                {
+                    name: "Treasure Hunt",
+                    time: "1:00 PM",
+                    venue: "College Campus",
+                    category: "Cultural",
+                },
+                {
+                    name: "Model United Nations",
+                    time: "TBA",
+                    venue: "Lecture Hall 1 & 2",
+                    category: "Academic",
+                },
+                {
+                    name: "Headliner Concert",
+                    time: "TBA",
+                    venue: "Main Stage · GMC Kathua College Campus",
+                    category: "Pro Shows",
+                    headliner: true,
+                },
+            ],
+        },
+        {
+            date: "31 OCT",
+            fullDate: "31 OCTOBER 2026",
+            number: "04",
+            events: [
+                {
+                    name: "The Unknown Files",
+                    time: "12:30 PM",
+                    venue: "Lecture Hall",
+                    category: "Cultural",
+                },
+                {
+                    name: "Skit & Drama",
+                    time: "1:00 PM",
+                    venue: "Lecture Hall",
+                    category: "Cultural",
+                },
+                {
+                    name: "Cooking Competition",
+                    time: "1:00 PM",
+                    venue: "College Campus",
+                    category: "Cultural",
+                },
+                {
+                    name: "Fashion Show",
+                    time: "6:00 PM",
+                    venue: "Main Stage",
+                    category: "Cultural",
+                },
+                {
+                    name: "Basic Life Support Workshop",
+                    time: "TBA",
+                    venue: "Lecture Hall 1 & 2",
+                    category: "Academic",
+                },
+                {
+                    name: "Qawali Night",
+                    time: "TBA",
+                    venue: "Main Stage · GMC Kathua College Campus",
+                    category: "Pro Shows",
+                    headliner: true,
+                },
+            ],
+        },
+    ];
+
+    const sports = [
+        {
+            name: "Cricket",
+            venue: "Cricket Ground",
+        },
+        {
+            name: "Football",
+            venue: "Football Ground",
+        },
+        {
+            name: "Badminton",
+            venue: "Badminton Court",
+        },
+        {
+            name: "Basketball",
+            venue: "Basketball Court",
+        },
+        {
+            name: "Chess",
+            venue: "Sports Area",
+        },
+        {
+            name: "Table Tennis",
+            venue: "Sports Area",
+        },
+    ];
+
+    const selectedDay = scheduleDays[day];
+
     return (
-        <main className="shell">
-            <PageTitle
-                tag="A four-day festival / 28—31 October 2026"
-                title="THE<br/>TIME-TABLE."
-                sub="Switch days to explore the festival programme. Individual event dates, start times and venue assignments are not confirmed yet."
-            />
+        <main className="shell schedule-page">
+            {/* HEADER */}
+
+            <div className="schedule-heading">
+                <div>
+                    <div className="eyebrow">
+                        PANACEA ’26 · GMC KATHUA
+                    </div>
+
+                    <h1 className="schedule-title display">
+                        THE
+                        <br />
+                        SCHEDULE.
+                    </h1>
+
+                    <p className="schedule-intro">
+                        Four days. One festival. A programme
+                        of culture, competition, academics,
+                        sports and unforgettable nights.
+                    </p>
+                </div>
+
+                <div className="schedule-date-note">
+                    <span className="mono">
+                        FESTIVAL DATES
+                    </span>
+
+                    <strong>
+                        28—31
+                        <br />
+                        OCTOBER
+                        <br />
+                        2026
+                    </strong>
+                </div>
+            </div>
+
+            {/* DAY SELECTOR */}
 
             <div
-                className="schedule-tabs"
+                className="schedule-day-selector"
                 role="tablist"
                 aria-label="Festival days"
             >
-                {days.map((dayItem, index) => (
+                {scheduleDays.map((item, index) => (
                     <button
+                        key={item.date}
                         role="tab"
                         aria-selected={day === index}
                         className={
                             day === index
-                                ? "selected"
-                                : ""
+                                ? "schedule-day active"
+                                : "schedule-day"
                         }
-                        key={dayItem.date}
-                        onClick={() =>
-                            setDay(index)
-                        }
+                        onClick={() => setDay(index)}
                     >
-                        {dayItem.label} —{" "}
-                        {dayItem.date}
+                        <span className="schedule-day-number">
+                            DAY {item.number}
+                        </span>
+
+                        <strong>{item.date}</strong>
                     </button>
                 ))}
             </div>
 
-            <div className="sticker">
-                {days[day].label} · 2026 · PROGRAMME TBA
-            </div>
+            {/* SELECTED DAY */}
 
-            <div
-                className="paper-panel"
-                style={{
-                    margin: "26px 0 28px",
-                }}
-            >
+            <section className="schedule-board">
+                <div className="schedule-board-header">
+                    <div>
+                        <span className="mono">
+                            DAY {selectedDay.number}
+                        </span>
+
+                        <h2>
+                            {selectedDay.fullDate}
+                        </h2>
+                    </div>
+
+                    <span className="schedule-board-label">
+                        PROGRAMME
+                    </span>
+                </div>
+
+                <div className="schedule-events">
+                    {selectedDay.events.map((event) => (
+                        <div
+                            className={`schedule-event ${event.headliner
+                                ? "schedule-event-headliner"
+                                : ""
+                                }`}
+                            key={event.name}
+                        >
+                            <div className="schedule-event-time">
+                                <span className="mono">
+                                    TIME
+                                </span>
+
+                                <strong>
+                                    {event.time}
+                                </strong>
+                            </div>
+
+                            <div className="schedule-event-main">
+                                <span
+                                    className={`schedule-category schedule-category-${event.category
+                                        .toLowerCase()
+                                        .replace(/\s+/g, "-")}`}
+                                >
+                                    {event.category}
+                                </span>
+
+                                <h3>{event.name}</h3>
+
+                                <p>
+                                    {event.venue}
+                                </p>
+                            </div>
+
+                            {event.headliner && (
+                                <div className="schedule-headliner-tag">
+                                    PANACEA NIGHT
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* SPORTS */}
+
+            <section className="schedule-sports">
+                <div className="schedule-section-label">
+                    <span className="mono">
+                        28—31 OCTOBER
+                    </span>
+
+                    <h2>
+                        SPORTS
+                        <br />
+                        AREA.
+                    </h2>
+
+                    <p>
+                        Sports events run across all four
+                        festival days. Exact match timings
+                        will be announced separately.
+                    </p>
+                </div>
+
+                <div className="schedule-sports-grid">
+                    {sports.map((sport) => (
+                        <div
+                            className="schedule-sport-card"
+                            key={sport.name}
+                        >
+                            <span className="mono">
+                                SPORTS
+                            </span>
+
+                            <h3>{sport.name}</h3>
+
+                            <p>{sport.venue}</p>
+
+                            <span className="schedule-sport-date">
+                                28—31 OCT
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* FINAL NOTE */}
+
+            <div className="schedule-footer-note">
                 <span className="mono">
-                    DAILY PROGRAMME ·{" "}
-                    {days[day].date} 2026
+                    PANACEA ’26 · GMC KATHUA
                 </span>
 
-                <h2
-                    className="display"
-                    style={{ fontSize: 35 }}
-                >
-                    THE LINE-UP IS TAKING SHAPE.
-                </h2>
-
-                <p style={{ lineHeight: 1.7 }}>
-                    Event-by-event date assignments, times
-                    and campus venues are TBA. No event
-                    has been assigned to this date yet.
+                <p>
+                    Times marked TBA will be announced by
+                    the respective event teams. Sports
+                    competitions run throughout the
+                    four-day festival.
                 </p>
-            </div>
-
-            <h2
-                className="section-title"
-                style={{ fontSize: 32 }}
-            >
-                EVENTS IN THE FESTIVAL MIX
-            </h2>
-
-            <p
-                className="mono"
-                style={{ fontSize: 10 }}
-            >
-                NOT IN DAY ORDER · TIME AND VENUE TBA
-            </p>
-
-            <div
-                style={{ margin: "26px 0 80px" }}
-            >
-                {events.map((event) => (
-                    <div
-                        className="schedule-row"
-                        key={event.id}
-                    >
-                        <span className="mono">
-                            {event.date}
-                        </span>
-
-                        <div>
-                            <strong>{event.name}</strong>
-
-                            <small>
-                                {event.description}
-                            </small>
-                        </div>
-
-                        <span
-                            className="pill category-cell"
-                            style={{
-                                background:
-                                    event.category ===
-                                        "Sports"
-                                        ? "var(--blue)"
-                                        : event.category ===
-                                            "Academic"
-                                            ? "var(--yellow)"
-                                            : "var(--pink)",
-                            }}
-                        >
-                            {event.category}
-                        </span>
-
-                        <span
-                            className="mono venue"
-                            style={{ fontSize: 9 }}
-                        >
-                            <MapPin
-                                size={13}
-                                style={{
-                                    verticalAlign:
-                                        "middle",
-                                }}
-                            />{" "}
-                            {event.venue}
-                        </span>
-                    </div>
-                ))}
             </div>
         </main>
     );
@@ -1666,7 +2532,7 @@ function SchedulePage() {
    ========================================================= */
 
 function CardPage() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [, setLoc] = useLocation();
 
     const [passType, setPassType] = useState<
@@ -2190,293 +3056,6 @@ function CardPage() {
     );
 }
 
-/* =========================================================
-   ABOUT
-   ========================================================= */
-
-function AboutPage() {
-    return (
-        <main>
-            <section className="shell">
-                <PageTitle
-                    tag="The why behind the noise"
-                    title="ABOUT<br/>PANACEA."
-                    sub="PANACEA is the annual festival of Government Medical College, Kathua: a meeting place for talent, sportsmanship, creativity, academics, culture and entertainment."
-                />
-
-                <div
-                    className="two-col"
-                    style={{ paddingBottom: 75 }}
-                >
-                    <div>
-                        <span className="sticker">
-                            CULTURE · CHAOS · CRESCENDO
-                        </span>
-
-                        <h2
-                            className="section-title"
-                            style={{ marginTop: 30 }}
-                        >
-                            FOUR DAYS.
-                            <br />
-                            COUNTLESS
-                            <br />
-                            MEMORIES.
-                            <br />
-                            ONE COMPLETE
-                            <br />
-                            CURE.
-                        </h2>
-                    </div>
-
-                    <div>
-                        <h3
-                            className="display"
-                            style={{ fontSize: 26 }}
-                        >
-                            A campus in full colour.
-                        </h3>
-
-                        <p
-                            style={{ lineHeight: 1.8 }}
-                        >
-                            PANACEA ’26 brings together
-                            inter-college sport, performance,
-                            art, academic exchange and live
-                            shows. It is made for the people who
-                            compete, create, question, cheer and
-                            keep the chorus going.
-                        </p>
-
-                        <p
-                            style={{ lineHeight: 1.8 }}
-                        >
-                            The festival is organized by
-                            Government Medical College,
-                            Kathua. Individual schedules,
-                            locations and participation details
-                            will be published after confirmation.
-                        </p>
-
-                        <div
-                            className="checker"
-                            style={{ marginTop: 28 }}
-                        />
-                    </div>
-                </div>
-            </section>
-
-            <section className="section dark">
-                <div className="shell">
-                    <div className="eyebrow">
-                        Who's making the festival
-                    </div>
-
-                    <h2 className="section-title">
-                        FEST
-                        <br />
-                        COORDINATORS.
-                    </h2>
-
-                    <div className="organizer-grid">
-                        {organizers.map(
-                            (organizer) => (
-                                <div
-                                    className="organizer"
-                                    key={organizer.role}
-                                >
-                                    <span
-                                        className="mono"
-                                        style={{ fontSize: 9 }}
-                                    >
-                                        {organizer.role}
-                                    </span>
-
-                                    <strong>
-                                        {organizer.name}
-                                    </strong>
-
-                                    <span
-                                        style={{ fontSize: 12 }}
-                                    >
-                                        {organizer.contact}
-                                    </span>
-                                </div>
-                            )
-                        )}
-                    </div>
-
-                    <p
-                        className="mono"
-                        style={{
-                            marginTop: 22,
-                            fontSize: 10,
-                        }}
-                    >
-                        ORGANIZER CONTACT DETAILS · TBA
-                    </p>
-                </div>
-            </section>
-
-            <section className="section">
-                <div className="shell">
-                    <div className="section-head">
-                        <div>
-                            <div className="eyebrow">
-                                Names from the festival notice
-                            </div>
-
-                            <h2 className="section-title">
-                                THE CREW
-                                <br />
-                                BEHIND IT.
-                            </h2>
-                        </div>
-
-                        <p className="section-intro">
-                            Expanded event organizer rosters
-                            from the reference material. Contact
-                            details not legible in source are marked
-                            TBA.
-                        </p>
-                    </div>
-
-                    <OrganizerList
-                        title="Cultural event organisers"
-                        names={culturalOrganizers}
-                    />
-
-                    <OrganizerList
-                        title="Sports event organisers"
-                        names={sportsOrganizers}
-                    />
-
-                    <OrganizerList
-                        title="Academic event organisers"
-                        names={academicOrganizers}
-                    />
-
-                    <div className="notice">
-                        Contact details TBA. Please use
-                        official GMC Kathua festival channels
-                        once announced.
-                    </div>
-                </div>
-            </section>
-
-            <section className="section">
-                <div className="shell">
-                    <div className="eyebrow">
-                        The campus, the gathering
-                    </div>
-
-                    <h2 className="section-title">
-                        GMC KATHUA.
-                    </h2>
-
-                    <p
-                        style={{
-                            maxWidth: 600,
-                            lineHeight: 1.8,
-                        }}
-                    >
-                        Government Medical College, Kathua is
-                        the home of PANACEA ’26. Festival venue
-                        locations within campus and visitor
-                        information are TBA.
-                    </p>
-
-                    <Info
-                        label="Festival venue"
-                        value="Government Medical College, Kathua · exact event venues TBA"
-                    />
-
-                    <Info
-                        label="Dates"
-                        value="28—31 October 2026"
-                    />
-
-                    <Info
-                        label="Contact"
-                        value="Organizer contact details TBA"
-                    />
-                </div>
-            </section>
-        </main>
-    );
-}
-
-/* =========================================================
-   ORGANIZER LIST
-   ========================================================= */
-
-function OrganizerList({
-    title,
-    names,
-}: {
-    title: string;
-    names: string;
-}) {
-    const [expanded, setExpanded] =
-        useState(false);
-
-    return (
-        <div
-            style={{
-                borderTop:
-                    "1px solid var(--ink)",
-                padding: "16px 0",
-            }}
-        >
-            <button
-                onClick={() =>
-                    setExpanded(!expanded)
-                }
-                aria-expanded={expanded}
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    border: 0,
-                    background: "transparent",
-                    textAlign: "left",
-                    padding: 0,
-                    font: "20px Archivo Black",
-                    textTransform: "uppercase",
-                }}
-            >
-                {title}
-                <ChevronDown size={18} />
-            </button>
-
-            {expanded && (
-                <div
-                    style={{
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                        marginTop: 18,
-                    }}
-                >
-                    {names
-                        .split(", ")
-                        .map((name) => (
-                            <span
-                                className="pill"
-                                key={name}
-                                style={{
-                                    background:
-                                        "var(--cream)",
-                                }}
-                            >
-                                {name}
-                            </span>
-                        ))}
-                </div>
-            )}
-        </div>
-    );
-}
 
 /* =========================================================
    AUTH PAGE
@@ -2487,28 +3066,24 @@ function AuthPage({
 }: {
     mode: "login" | "signup";
 }) {
-    const { login, signup } =
-        useAuth();
+    const { login, signup } = useAuth();
 
-    const [, setLoc] =
-        useLocation();
+    const [, setLoc] = useLocation();
 
-    const [error, setError] =
-        useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const [loading, setLoading] =
-        useState(false);
-
-    const [values, setValues] =
-        useState({
-            fullName: "",
-            email: "",
-            phoneNumber: "",
-            collegeName: "",
-            city: "",
-            state: "",
-            password: "",
-        });
+    const [values, setValues] = useState({
+        fullName: "",
+        email: "",
+        phoneNumber: "",
+        collegeName: "",
+        otherCollegeName: "",
+        city: "",
+        state: "",
+        password: "",
+        confirmPassword: "",
+    });
 
     const update = (
         key: keyof typeof values,
@@ -2520,16 +3095,153 @@ function AuthPage({
         }));
     };
 
+    /* =====================================================
+       VALIDATION
+       ===================================================== */
+
+    const validateSignup = () => {
+        const fullName = values.fullName.trim();
+        const email = values.email.trim();
+        const phone = values.phoneNumber.trim();
+        const city = values.city.trim();
+
+        /* FULL NAME */
+        if (!fullName) {
+            return "Please enter your full name.";
+        }
+
+        if (
+            !/^[A-Za-z][A-Za-z .'-]{1,99}$/.test(
+                fullName
+            )
+        ) {
+            return "Please enter a valid full name.";
+        }
+
+        /* PHONE */
+        if (!/^[6-9]\d{9}$/.test(phone)) {
+            return "Please enter a valid 10-digit Indian mobile number.";
+        }
+
+        /* COLLEGE */
+        if (!values.collegeName) {
+            return "Please select your college.";
+        }
+
+        if (
+            values.collegeName === "OTHER" &&
+            !values.otherCollegeName.trim()
+        ) {
+            return "Please enter your college name.";
+        }
+
+        /* CITY */
+        if (!city) {
+            return "Please enter your city.";
+        }
+
+        if (
+            !/^[A-Za-z][A-Za-z .'-]{1,59}$/.test(
+                city
+            )
+        ) {
+            return "Please enter a valid city.";
+        }
+
+        /* STATE */
+        if (!values.state) {
+            return "Please select your state / UT.";
+        }
+
+        /* EMAIL */
+        if (!email) {
+            return "Please enter your email address.";
+        }
+
+        if (
+            !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(
+                email
+            )
+        ) {
+            return "Please enter a valid email address.";
+        }
+
+        /* PASSWORD */
+        if (values.password.length < 8) {
+            return "Password must be at least 8 characters long.";
+        }
+
+        if (!/[A-Za-z]/.test(values.password)) {
+            return "Password must contain at least one letter.";
+        }
+
+        if (!/\d/.test(values.password)) {
+            return "Password must contain at least one number.";
+        }
+
+        /* CONFIRM PASSWORD */
+        if (!values.confirmPassword) {
+            return "Please confirm your password.";
+        }
+
+        if (
+            values.password !==
+            values.confirmPassword
+        ) {
+            return "Passwords do not match.";
+        }
+
+        return "";
+    };
+
+    /* =====================================================
+       SUBMIT
+       ===================================================== */
+
     const submit = async (
         event: FormEvent
     ) => {
         event.preventDefault();
 
         setError("");
+
+        /* SIGNUP VALIDATION */
+        if (mode === "signup") {
+            const validationError =
+                validateSignup();
+
+            if (validationError) {
+                setError(validationError);
+                return;
+            }
+        }
+
+        /* LOGIN VALIDATION */
+        if (mode === "login") {
+            if (!values.email.trim()) {
+                setError(
+                    "Please enter your email address."
+                );
+                return;
+            }
+
+            if (!values.password) {
+                setError(
+                    "Please enter your password."
+                );
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
             if (mode === "signup") {
+                const collegeName =
+                    values.collegeName === "OTHER"
+                        ? values.otherCollegeName.trim()
+                        : values.collegeName.trim();
+
                 await signup({
                     fullName:
                         values.fullName.trim(),
@@ -2540,8 +3252,7 @@ function AuthPage({
                     phoneNumber:
                         values.phoneNumber.trim(),
 
-                    collegeName:
-                        values.collegeName.trim(),
+                    collegeName,
 
                     city:
                         values.city.trim(),
@@ -2552,17 +3263,34 @@ function AuthPage({
                     password:
                         values.password,
                 });
-            } else {
-                await login({
-                    email:
-                        values.email.trim(),
 
-                    password:
-                        values.password,
-                });
+                setLoc("/");
+                return;
             }
 
-            setLoc("/profile");
+            const loggedInUser = await login({
+                email:
+                    values.email.trim(),
+
+                password:
+                    values.password,
+            });
+
+            const isAdmin =
+                Array.isArray(
+                    loggedInUser.roles
+                ) &&
+                loggedInUser.roles.some(
+                    (role: string) =>
+                        role === "ROLE_ADMIN" ||
+                        role === "ADMIN"
+                );
+
+            if (isAdmin) {
+                setLoc("/admin");
+            } else {
+                setLoc("/profile");
+            }
         } catch (error) {
             setError(
                 error instanceof Error
@@ -2579,10 +3307,13 @@ function AuthPage({
             <div
                 className="two-col"
                 style={{
-                    padding:
-                        "65px 0 95px",
+                    padding: "65px 0 95px",
                 }}
             >
+                {/* =================================================
+                   LEFT SIDE
+                   ================================================= */}
+
                 <div>
                     <div className="sticker">
                         {mode === "signup"
@@ -2626,9 +3357,15 @@ function AuthPage({
 
                     <div
                         className="checker"
-                        style={{ marginTop: 32 }}
+                        style={{
+                            marginTop: 32,
+                        }}
                     />
                 </div>
+
+                {/* =================================================
+                   FORM
+                   ================================================= */}
 
                 <div className="paper-panel">
                     <span className="eyebrow">
@@ -2639,7 +3376,9 @@ function AuthPage({
 
                     <h2
                         className="section-title"
-                        style={{ fontSize: 34 }}
+                        style={{
+                            fontSize: 34,
+                        }}
                     >
                         {mode === "signup"
                             ? "SIGN UP"
@@ -2649,12 +3388,22 @@ function AuthPage({
                     <form
                         className="form-stack"
                         onSubmit={submit}
+                        noValidate
                     >
+                        {/* =================================================
+                           SIGNUP ONLY
+                           ================================================= */}
+
                         {mode === "signup" && (
                             <>
+                                {/* FULL NAME */}
+
                                 <Field
                                     label="Full name"
-                                    value={values.fullName}
+                                    value={
+                                        values.fullName
+                                    }
+                                    placeholder="Enter your full name"
                                     onChange={(value) =>
                                         update(
                                             "fullName",
@@ -2664,42 +3413,106 @@ function AuthPage({
                                     required
                                 />
 
+                                {/* PHONE */}
+
                                 <Field
                                     label="Phone number"
                                     type="tel"
-                                    value={values.phoneNumber}
+                                    value={
+                                        values.phoneNumber
+                                    }
+                                    placeholder="10-digit mobile number"
+                                    maxLength={10}
+                                    inputMode="numeric"
                                     onChange={(value) =>
                                         update(
                                             "phoneNumber",
                                             value
+                                                .replace(
+                                                    /\D/g,
+                                                    ""
+                                                )
+                                                .slice(
+                                                    0,
+                                                    10
+                                                )
                                         )
                                     }
                                     required
                                 />
 
+                                {/* COLLEGE */}
+
                                 <label>
                                     College name
 
                                     <select
-                                        value={values.collegeName}
-                                        onChange={(e) =>
-                                            update("collegeName", e.target.value)
+                                        value={
+                                            values.collegeName
+                                        }
+                                        onChange={(event) =>
+                                            update(
+                                                "collegeName",
+                                                event
+                                                    .target
+                                                    .value
+                                            )
                                         }
                                         required
                                     >
-                                        <option value="">Select your college</option>
+                                        <option value="">
+                                            Select your college
+                                        </option>
 
-                                        {COLLEGES.map((college) => (
-                                            <option key={college} value={college}>
-                                                {college}
-                                            </option>
-                                        ))}
+                                        {COLLEGES.map(
+                                            (college) => (
+                                                <option
+                                                    key={
+                                                        college
+                                                    }
+                                                    value={
+                                                        college
+                                                    }
+                                                >
+                                                    {college}
+                                                </option>
+                                            )
+                                        )}
+
+                                        <option value="OTHER">
+                                            Other
+                                        </option>
                                     </select>
                                 </label>
 
+                                {/* OTHER COLLEGE */}
+
+                                {values.collegeName ===
+                                    "OTHER" && (
+                                        <Field
+                                            label="College name"
+                                            value={
+                                                values.otherCollegeName
+                                            }
+                                            placeholder="Enter your college name"
+                                            onChange={(value) =>
+                                                update(
+                                                    "otherCollegeName",
+                                                    value
+                                                )
+                                            }
+                                            required
+                                        />
+                                    )}
+
+                                {/* CITY */}
+
                                 <Field
                                     label="City"
-                                    value={values.city}
+                                    value={
+                                        values.city
+                                    }
+                                    placeholder="Enter your city"
                                     onChange={(value) =>
                                         update(
                                             "city",
@@ -2709,32 +3522,57 @@ function AuthPage({
                                     required
                                 />
 
+                                {/* STATE */}
+
                                 <label>
                                     State / UT
 
                                     <select
-                                        value={values.state}
-                                        onChange={(e) =>
-                                            update("state", e.target.value)
+                                        value={
+                                            values.state
+                                        }
+                                        onChange={(event) =>
+                                            update(
+                                                "state",
+                                                event
+                                                    .target
+                                                    .value
+                                            )
                                         }
                                         required
                                     >
-                                        <option value="">Select your state / UT</option>
+                                        <option value="">
+                                            Select your state / UT
+                                        </option>
 
-                                        {STATES.map((state) => (
-                                            <option key={state} value={state}>
-                                                {state}
-                                            </option>
-                                        ))}
+                                        {STATES.map(
+                                            (state) => (
+                                                <option
+                                                    key={
+                                                        state
+                                                    }
+                                                    value={
+                                                        state
+                                                    }
+                                                >
+                                                    {state}
+                                                </option>
+                                            )
+                                        )}
                                     </select>
                                 </label>
                             </>
                         )}
 
+                        {/* =================================================
+                           EMAIL
+                           ================================================= */}
+
                         <Field
                             label="Email"
                             type="email"
                             value={values.email}
+                            placeholder="you@example.com"
                             onChange={(value) =>
                                 update(
                                     "email",
@@ -2744,10 +3582,18 @@ function AuthPage({
                             required
                         />
 
+                        {/* =================================================
+                           PASSWORD
+                           ================================================= */}
+
                         <Field
                             label="Password"
                             type="password"
-                            value={values.password}
+                            value={
+                                values.password
+                            }
+                            placeholder="Minimum 8 characters"
+                            minLength={8}
                             onChange={(value) =>
                                 update(
                                     "password",
@@ -2757,18 +3603,114 @@ function AuthPage({
                             required
                         />
 
+                        {/* =================================================
+                           CONFIRM PASSWORD
+                           ================================================= */}
+
+                        {mode === "signup" && (
+                            <>
+                                <Field
+                                    label="Confirm password"
+                                    type="password"
+                                    value={
+                                        values.confirmPassword
+                                    }
+                                    placeholder="Re-enter your password"
+                                    minLength={8}
+                                    onChange={(value) =>
+                                        update(
+                                            "confirmPassword",
+                                            value
+                                        )
+                                    }
+                                    required
+                                />
+
+                                {/* PASSWORD RULES */}
+
+                                <div className="auth-password-rules">
+                                    <span>
+                                        PASSWORD
+                                        REQUIREMENTS
+                                    </span>
+
+                                    <ul>
+                                        <li
+                                            className={
+                                                values
+                                                    .password
+                                                    .length >=
+                                                    8
+                                                    ? "valid"
+                                                    : ""
+                                            }
+                                        >
+                                            At least 8
+                                            characters
+                                        </li>
+
+                                        <li
+                                            className={
+                                                /[A-Za-z]/.test(
+                                                    values.password
+                                                )
+                                                    ? "valid"
+                                                    : ""
+                                            }
+                                        >
+                                            At least one
+                                            letter
+                                        </li>
+
+                                        <li
+                                            className={
+                                                /\d/.test(
+                                                    values.password
+                                                )
+                                                    ? "valid"
+                                                    : ""
+                                            }
+                                        >
+                                            At least one
+                                            number
+                                        </li>
+
+                                        <li
+                                            className={
+                                                values
+                                                    .confirmPassword
+                                                    .length >
+                                                    0 &&
+                                                    values.password ===
+                                                    values.confirmPassword
+                                                    ? "valid"
+                                                    : ""
+                                            }
+                                        >
+                                            Passwords
+                                            must match
+                                        </li>
+                                    </ul>
+                                </div>
+                            </>
+                        )}
+
+                        {/* =================================================
+                           ERROR
+                           ================================================= */}
+
                         {error && (
                             <div
                                 role="alert"
-                                className="notice"
-                                style={{
-                                    borderColor:
-                                        "var(--pink)",
-                                }}
+                                className="notice auth-error"
                             >
                                 {error}
                             </div>
                         )}
+
+                        {/* =================================================
+                           SUBMIT
+                           ================================================= */}
 
                         <button
                             className="button"
@@ -2789,7 +3731,15 @@ function AuthPage({
                         </button>
                     </form>
 
-                    <p style={{ fontSize: 13 }}>
+                    {/* =================================================
+                       SWITCH AUTH
+                       ================================================= */}
+
+                    <p
+                        style={{
+                            fontSize: 13,
+                        }}
+                    >
                         {mode === "signup"
                             ? "Already have an account? "
                             : "New to PANACEA? "}
@@ -2819,7 +3769,8 @@ function AuthPage({
                                 marginTop: 18,
                             }}
                         >
-                            PASSWORD RESET · COMING SOON
+                            PASSWORD RESET ·
+                            COMING SOON
                         </p>
                     )}
                 </div>
@@ -2827,6 +3778,7 @@ function AuthPage({
         </main>
     );
 }
+
 
 /* =========================================================
    FIELD
@@ -2838,12 +3790,25 @@ function Field({
     onChange,
     type = "text",
     required = false,
+    placeholder,
+    maxLength,
+    minLength,
+    inputMode,
 }: {
     label: string;
     value: string;
     onChange: (value: string) => void;
     type?: string;
     required?: boolean;
+    placeholder?: string;
+    maxLength?: number;
+    minLength?: number;
+    inputMode?:
+    | "text"
+    | "numeric"
+    | "tel"
+    | "email"
+    | "url";
 }) {
     return (
         <label>
@@ -2852,22 +3817,27 @@ function Field({
             <input
                 type={type}
                 value={value}
+                placeholder={placeholder}
                 onChange={(event) =>
                     onChange(
                         event.target.value
                     )
                 }
                 required={required}
+                maxLength={maxLength}
+                minLength={minLength}
+                inputMode={inputMode}
                 autoComplete={
                     type === "password"
-                        ? "current-password"
-                        : undefined
+                        ? "new-password"
+                        : type === "email"
+                            ? "email"
+                            : undefined
                 }
             />
         </label>
     );
 }
-
 /* =========================================================
    DASH TILE
    ========================================================= */

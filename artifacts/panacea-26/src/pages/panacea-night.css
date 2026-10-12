@@ -1,0 +1,1927 @@
+/* =========================================================
+   PANACEA NIGHTS
+   ========================================================= */
+
+.pn-page {
+  --pn-paper: #f4ecd9;
+  --pn-ink: #11100f;
+  --pn-line: #bdb4a1;
+  --pn-pink: #ff3f78;
+  --pn-yellow: #ffbd17;
+  --pn-white: #f8f0df;
+
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+
+  background: var(--pn-paper);
+  color: var(--pn-ink);
+
+  box-sizing: border-box;
+}
+
+.pn-page *,
+.pn-page *::before,
+.pn-page *::after {
+  box-sizing: border-box;
+}
+
+.pn-page button {
+  font: inherit;
+}
+
+.pn-mono {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.pn-hero {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 58px 0 42px;
+}
+
+.pn-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 38px;
+}
+
+.pn-hero-title {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pn-hero-title span {
+  display: block;
+  margin: 0;
+
+  font-size: clamp(90px, 12.5vw, 185px);
+  font-weight: 900;
+  line-height: 0.79;
+  letter-spacing: -0.075em;
+}
+
+.pn-hero-title span:last-child {
+  margin-left: 0.18em;
+}
+
+.pn-hero-bottom {
+  margin-top: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: #514b43;
+}
+
+/* =========================================================
+   DAY TABS
+   ========================================================= */
+
+.pn-day-tabs {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  border-top: 1px solid var(--pn-ink);
+  border-bottom: 1px solid var(--pn-ink);
+}
+
+.pn-day-tabs button {
+  position: relative;
+
+  min-width: 0;
+  min-height: 65px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+  padding: 0 22px;
+
+  border: 0;
+  border-right: 1px solid var(--pn-ink);
+
+  background: transparent;
+  color: var(--pn-ink);
+
+  cursor: pointer;
+  text-align: left;
+
+  transition:
+    background 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pn-day-tabs button:first-child {
+  border-left: 1px solid var(--pn-ink);
+}
+
+.pn-day-tabs button:last-child {
+  border-right: 0;
+}
+
+.pn-day-tabs button:hover {
+  background: rgba(255, 63, 120, 0.08);
+}
+
+.pn-day-tabs button.active {
+  background: var(--pn-pink);
+}
+
+.pn-day-tabs button.active:hover {
+  background: var(--pn-pink);
+}
+
+.pn-day-tabs button strong {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   NIGHT CONTENT
+   ========================================================= */
+
+.pn-night-content {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 48px 0 0;
+
+  animation: pnPageEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes pnPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   NIGHT HEADING
+   ========================================================= */
+
+.pn-night-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 50px;
+  padding-bottom: 30px;
+
+  border-bottom: 1px solid var(--pn-line);
+}
+
+.pn-night-heading-left {
+  min-width: 0;
+}
+
+.pn-night-heading-left > .pn-mono {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.pn-night-heading h2 {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+
+  font-size: clamp(60px, 8vw, 115px);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+}
+
+.pn-night-heading h2 span {
+  display: block;
+}
+
+.pn-night-heading h2 span:last-child {
+  margin-left: 0.08em;
+}
+
+.pn-stage-heading {
+  animation: pnHeadingEnter 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pnHeadingEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.pn-night-heading-right {
+  min-width: 180px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  gap: 12px;
+}
+
+.pn-night-heading-right .pn-mono {
+  text-align: right;
+}
+
+.pn-date {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+}
+
+/* =========================================================
+   MAIN GRID
+   ========================================================= */
+
+.pn-reveal-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(270px, 0.85fr);
+
+  gap: 42px;
+  padding: 38px 0 55px;
+
+  align-items: start;
+}
+
+.pn-visual-column,
+.pn-hints-column {
+  min-width: 0;
+}
+
+/* =========================================================
+   VISUAL FRAME
+   ========================================================= */
+
+.pn-visual-frame {
+  position: relative;
+
+  width: 100%;
+  aspect-ratio: 1.42 / 1;
+
+  overflow: hidden;
+
+  border: 1px solid var(--pn-ink);
+  background: var(--pn-ink);
+
+  box-shadow: 7px 7px 0 var(--pn-ink);
+
+  isolation: isolate;
+}
+
+.pn-visual-stage {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   VISUAL TRANSITION
+   ========================================================= */
+
+.pn-meme-visual,
+.pn-creative-visual,
+.pn-artist-image {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  animation: pnVisualTransition 0.9s
+    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pnVisualTransition {
+  0% {
+    opacity: 0;
+    transform: scale(1.06) translateY(14px);
+    filter: blur(12px);
+    clip-path: inset(8% 5% 8% 5%);
+  }
+
+  45% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* =========================================================
+   DAY 01 — COMEDY
+   ========================================================= */
+
+.pn-comedy-visual {
+  background: var(--pn-pink);
+  color: var(--pn-ink);
+  padding: 28px;
+}
+
+.pn-comedy-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at 78% 28%,
+      rgba(17, 16, 15, 0.09) 0 1px,
+      transparent 1px 100%
+    );
+
+  background-size: 20px 20px;
+  opacity: 0.35;
+}
+
+.pn-comedy-circle {
+  position: absolute;
+
+  border: 1px solid rgba(17, 16, 15, 0.3);
+  border-radius: 50%;
+
+  left: 62%;
+  top: 48%;
+
+  transform: translate(-50%, -50%);
+}
+
+.pn-comedy-circle-one {
+  width: 360px;
+  height: 360px;
+}
+
+.pn-comedy-circle-two {
+  width: 520px;
+  height: 180px;
+  transform:
+    translate(-50%, -50%)
+    rotate(-18deg);
+}
+
+.pn-comedy-mark {
+  position: absolute;
+
+  left: 62%;
+  top: 48%;
+
+  width: 90px;
+  height: 90px;
+
+  display: grid;
+  place-items: center;
+
+  border: 2px solid var(--pn-ink);
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+
+  font-size: 58px;
+  font-weight: 900;
+
+  animation: pnComedyPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes pnComedyPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(-4deg) scale(0.96);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) rotate(4deg) scale(1.04);
+  }
+}
+
+.pn-comedy-copy {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  font-size: clamp(48px, 6vw, 88px);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.075em;
+}
+
+.pn-comedy-copy strong {
+  margin-left: 0.1em;
+}
+
+.pn-comedy-side {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.pn-comedy-bottom {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  right: 28px;
+
+  display: flex;
+  justify-content: space-between;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+/* =========================================================
+   DAY 01 — MEME
+   ========================================================= */
+
+.pn-meme-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff;
+}
+
+.pn-meme-visual img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: center;
+
+  background: #fff;
+
+  animation: pnMemeEnter 0.85s
+    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pnMemeEnter {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.pn-meme-overlay {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  padding: 12px 16px;
+
+  background: var(--pn-yellow);
+  border: 1px solid var(--pn-ink);
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.pn-meme-date {
+  position: absolute;
+
+  left: 28px;
+  bottom: 25px;
+
+  padding: 11px 14px;
+
+  background: var(--pn-paper);
+  border: 1px solid var(--pn-ink);
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+/* =========================================================
+   ARTIST IMAGE
+   ========================================================= */
+
+.pn-artist-image {
+  background: #0e0d0c;
+}
+
+.pn-artist-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: center;
+
+  background: #0e0d0c;
+
+  animation: pnArtistReveal 1.15s
+    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pnArtistReveal {
+  0% {
+    opacity: 0;
+    transform: scale(1.14);
+    filter: blur(18px);
+  }
+
+  45% {
+    opacity: 0.8;
+    filter: blur(7px);
+  }
+
+  75% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+
+  100% {
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.pn-image-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.12),
+      transparent 40%,
+      rgba(0, 0, 0, 0.62)
+    );
+
+  pointer-events: none;
+}
+
+.pn-image-meta {
+  position: absolute;
+
+  left: 28px;
+  right: 28px;
+  bottom: 25px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  color: #fff;
+}
+
+.pn-image-meta span {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.pn-image-meta strong {
+  font-size: clamp(35px, 5vw, 72px);
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+/* =========================================================
+   DAY 02 — EDM
+   ========================================================= */
+
+.pn-edm-visual {
+  background: #11100f;
+  color: var(--pn-white);
+  padding: 28px;
+}
+
+.pn-creative-top {
+  position: relative;
+  z-index: 3;
+
+  display: flex;
+  justify-content: space-between;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+}
+
+.pn-soundwave {
+  position: absolute;
+
+  left: 50%;
+  top: 43%;
+
+  width: min(55%, 470px);
+  height: 190px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: clamp(5px, 1vw, 11px);
+
+  transform: translate(-50%, -50%);
+}
+
+.pn-soundwave span {
+  width: 5px;
+  min-height: 20px;
+
+  background: var(--pn-yellow);
+
+  transform-origin: center;
+
+  animation: pnWave 1.35s ease-in-out infinite alternate;
+}
+
+@keyframes pnWave {
+  from {
+    transform: scaleY(0.45);
+    opacity: 0.55;
+  }
+
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.pn-creative-title {
+  position: absolute;
+
+  left: 28px;
+  bottom: 30px;
+
+  display: flex;
+  flex-direction: column;
+
+  font-size: clamp(48px, 6.2vw, 92px);
+  font-weight: 900;
+  line-height: 0.78;
+  letter-spacing: -0.07em;
+}
+
+.pn-creative-title span:last-child {
+  margin-left: 0.1em;
+}
+
+.pn-creative-tags {
+  position: absolute;
+
+  right: 28px;
+  bottom: 30px;
+
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+
+  gap: 7px;
+
+  max-width: 48%;
+}
+
+.pn-creative-tags span {
+  padding: 9px 11px;
+
+  border: 1px solid currentColor;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+/* =========================================================
+   DAY 03 — CONCERT
+   ========================================================= */
+
+.pn-concert-visual {
+  background: var(--pn-pink);
+  color: var(--pn-ink);
+  padding: 28px;
+}
+
+.pn-spotlight-visual {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+}
+
+.pn-spotlight-ring {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  border: 1px solid rgba(17, 16, 15, 0.25);
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.pn-ring-one {
+  width: 280px;
+  height: 280px;
+}
+
+.pn-ring-two {
+  width: 500px;
+  height: 500px;
+}
+
+.pn-ring-three {
+  width: 760px;
+  height: 760px;
+}
+
+.pn-spotlight-core {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+
+  background: var(--pn-ink);
+
+  transform: translate(-50%, -50%);
+
+  animation: pnCorePulse 2s ease-in-out infinite;
+}
+
+@keyframes pnCorePulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+.pn-spotlight-beam {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 3px;
+  height: 45%;
+
+  background: rgba(17, 16, 15, 0.15);
+
+  transform-origin: bottom center;
+}
+
+.pn-beam-one {
+  transform:
+    translate(-50%, -100%)
+    rotate(-30deg);
+}
+
+.pn-beam-two {
+  transform:
+    translate(-50%, -100%)
+    rotate(30deg);
+}
+
+.pn-concert-copy {
+  position: absolute;
+
+  left: 28px;
+  bottom: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  font-size: clamp(38px, 5vw, 75px);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
+}
+
+.pn-concert-copy strong {
+  font-size: 1.16em;
+}
+
+.pn-concert-bottom {
+  position: absolute;
+
+  right: 28px;
+  bottom: 28px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  gap: 7px;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+
+/* =========================================================
+   DAY 04 — SUFI
+   ========================================================= */
+
+.pn-sufi-card {
+  background: var(--pn-yellow);
+  color: var(--pn-ink);
+  padding: 28px;
+}
+
+.pn-sufi-visual {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+}
+
+.pn-sufi-wave {
+  position: absolute;
+
+  left: 50%;
+  top: 48%;
+
+  width: 42%;
+  height: 38%;
+
+  border: 1px solid rgba(17, 16, 15, 0.3);
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.pn-sufi-wave-one {
+  transform:
+    translate(-50%, -50%)
+    rotate(15deg)
+    scaleX(1.4);
+}
+
+.pn-sufi-wave-two {
+  transform:
+    translate(-50%, -50%)
+    rotate(-15deg)
+    scaleX(1.4);
+}
+
+.pn-sufi-wave-three {
+  width: 30%;
+  height: 52%;
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.pn-sufi-center {
+  position: absolute;
+
+  left: 50%;
+  top: 48%;
+
+  width: 85px;
+  height: 85px;
+
+  display: grid;
+  place-items: center;
+
+  border: 2px solid var(--pn-ink);
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.pn-sufi-center span {
+  font-size: 50px;
+  line-height: 1;
+}
+
+.pn-sufi-copy {
+  position: absolute;
+
+  right: 28px;
+  top: 48%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.pn-sufi-title {
+  position: absolute;
+
+  left: 28px;
+  bottom: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  font-size: clamp(42px, 5vw, 75px);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.07em;
+}
+
+.pn-sufi-title strong {
+  font-size: 1.15em;
+}
+
+/* =========================================================
+   REVEAL BUTTON
+   ========================================================= */
+
+.pn-reveal-button {
+  position: relative;
+
+  width: calc(100% - 7px);
+  min-height: 67px;
+
+  margin-top: 16px;
+  padding: 0 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 1px solid var(--pn-ink);
+
+  background: var(--pn-paper);
+  color: var(--pn-ink);
+
+  box-shadow: 7px 7px 0 var(--pn-ink);
+
+  cursor: pointer;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+
+  transition:
+    background 0.35s ease,
+    color 0.35s ease,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pn-reveal-button:hover {
+  background: var(--pn-yellow);
+
+  transform: translate(-3px, -3px);
+
+  box-shadow: 10px 10px 0 var(--pn-ink);
+}
+
+.pn-reveal-button-active {
+  background: var(--pn-ink);
+  color: var(--pn-white);
+}
+
+.pn-reveal-button-active:hover {
+  background: var(--pn-pink);
+  color: var(--pn-ink);
+}
+
+.pn-button-arrow {
+  font-size: 22px;
+  line-height: 1;
+
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pn-reveal-button:hover .pn-button-arrow {
+  transform: translateX(7px);
+}
+
+/* =========================================================
+   HINTS
+   ========================================================= */
+
+.pn-hints-header {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 15px;
+  padding-bottom: 15px;
+
+  border-bottom: 1px solid var(--pn-line);
+}
+
+.pn-hints-intro {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+  padding: 24px 0 28px;
+
+  animation: pnInfoEnter 0.65s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pn-hints-intro strong {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.pn-hints-intro span {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #625b52;
+}
+
+.pn-hints-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pn-hint {
+  display: grid;
+  grid-template-columns: 85px minmax(0, 1fr);
+
+  gap: 18px;
+  padding: 21px 0;
+
+  border-bottom: 1px solid var(--pn-line);
+
+  transition:
+    transform 0.35s ease,
+    padding-left 0.35s ease;
+}
+
+.pn-hint:hover {
+  padding-left: 8px;
+}
+
+.pn-hint-number {
+  color: var(--pn-pink);
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.pn-hint p {
+  margin: 0;
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   REVEALED INFO
+   ========================================================= */
+
+.pn-revealed-info {
+  padding-top: 28px;
+
+  animation: pnInfoEnter 0.7s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes pnInfoEnter {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.pn-revealed-label {
+  margin-bottom: 14px;
+
+  color: var(--pn-pink);
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.pn-revealed-info h3 {
+  margin: 0 0 35px;
+
+  font-size: clamp(40px, 4vw, 65px);
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+}
+
+.pn-info-row {
+  display: grid;
+  grid-template-columns: 75px minmax(0, 1fr);
+
+  gap: 15px;
+
+  padding: 17px 0;
+
+  border-top: 1px solid var(--pn-line);
+}
+
+.pn-info-row span {
+  color: var(--pn-pink);
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.pn-info-row strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   NIGHT FOOTER
+   ========================================================= */
+
+.pn-night-footer {
+  min-height: 72px;
+
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+
+  align-items: center;
+
+  gap: 20px;
+
+  border-top: 1px solid var(--pn-line);
+  border-bottom: 1px solid var(--pn-line);
+}
+
+.pn-footer-center {
+  text-align: center;
+
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.pn-night-footer > .pn-mono:last-child {
+  text-align: right;
+}
+
+/* =========================================================
+   ACCENTS
+   ========================================================= */
+
+.pn-accent-pink .pn-reveal-button:hover {
+  background: var(--pn-pink);
+}
+
+.pn-accent-yellow .pn-reveal-button:hover {
+  background: var(--pn-yellow);
+}
+
+.pn-accent-pink .pn-night-heading-right .pn-mono {
+  color: var(--pn-pink);
+}
+
+.pn-accent-yellow .pn-night-heading-right .pn-mono {
+  color: #9a7135;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 950px) {
+  .pn-hero,
+  .pn-day-tabs,
+  .pn-night-content {
+    width: min(100% - 40px, 760px);
+  }
+
+  .pn-hero {
+    padding-top: 45px;
+  }
+
+  .pn-hero-title span {
+    font-size: clamp(75px, 13vw, 130px);
+  }
+
+  .pn-reveal-layout {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .pn-hints-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+  }
+
+  .pn-hints-header {
+    grid-column: 1 / -1;
+  }
+
+  .pn-hints-intro {
+    padding-top: 0;
+  }
+
+  .pn-hints-list {
+    grid-column: 1 / -1;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 12px;
+  }
+
+  .pn-hint {
+    display: block;
+
+    padding: 17px;
+
+    border: 1px solid var(--pn-line);
+  }
+
+  .pn-hint-number {
+    display: block;
+    margin-bottom: 15px;
+  }
+
+  .pn-comedy-copy {
+    font-size: clamp(42px, 8vw, 75px);
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .pn-hero,
+  .pn-day-tabs,
+  .pn-night-content {
+    width: calc(100% - 28px);
+  }
+
+  .pn-hero {
+    padding: 35px 0 30px;
+  }
+
+  .pn-hero-top {
+    margin-bottom: 25px;
+  }
+
+  .pn-hero-title span {
+    font-size: clamp(54px, 17vw, 90px);
+    line-height: 0.82;
+  }
+
+  .pn-hero-bottom {
+    margin-top: 30px;
+
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 12px;
+  }
+
+  .pn-day-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .pn-day-tabs button {
+    min-height: 58px;
+
+    padding: 10px 8px;
+
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+
+    gap: 6px;
+  }
+
+  .pn-day-tabs button .pn-mono {
+    font-size: 7px;
+  }
+
+  .pn-day-tabs button strong {
+    font-size: 8px;
+  }
+
+  .pn-night-content {
+    padding-top: 32px;
+  }
+
+  .pn-night-heading {
+    display: block;
+    padding-bottom: 24px;
+  }
+
+  .pn-night-heading h2 {
+    font-size: clamp(53px, 16vw, 85px);
+  }
+
+  .pn-night-heading-right {
+    margin-top: 22px;
+
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pn-night-heading-right .pn-mono {
+    text-align: left;
+  }
+
+  .pn-reveal-layout {
+    padding-top: 25px;
+    gap: 30px;
+  }
+
+  .pn-visual-frame {
+    aspect-ratio: 1 / 1;
+    box-shadow: 5px 5px 0 var(--pn-ink);
+  }
+
+  .pn-meme-visual img {
+    object-fit: contain;
+  }
+
+  .pn-meme-overlay {
+    top: 12px;
+    right: 12px;
+
+    padding: 9px 11px;
+
+    font-size: 7px;
+  }
+
+  .pn-meme-date {
+    left: 12px;
+    bottom: 12px;
+
+    padding: 8px 10px;
+
+    font-size: 7px;
+  }
+
+  .pn-edm-visual,
+  .pn-concert-visual,
+  .pn-sufi-card,
+  .pn-comedy-visual {
+    padding: 18px;
+  }
+
+  .pn-creative-title {
+    left: 18px;
+    bottom: 20px;
+
+    font-size: clamp(38px, 12vw, 65px);
+  }
+
+  .pn-creative-tags {
+    right: 18px;
+    bottom: 20px;
+
+    max-width: 50%;
+  }
+
+  .pn-creative-tags span {
+    padding: 7px 8px;
+    font-size: 6px;
+  }
+
+  .pn-soundwave {
+    width: 70%;
+    height: 150px;
+  }
+
+  .pn-concert-copy {
+    left: 18px;
+    bottom: 20px;
+
+    font-size: clamp(31px, 9vw, 55px);
+  }
+
+  .pn-concert-bottom {
+    right: 18px;
+    bottom: 20px;
+
+    font-size: 7px;
+  }
+
+  .pn-sufi-title {
+    left: 18px;
+    bottom: 20px;
+
+    font-size: clamp(34px, 10vw, 58px);
+  }
+
+  .pn-sufi-copy {
+    right: 18px;
+    font-size: 7px;
+  }
+
+  .pn-sufi-center {
+    width: 65px;
+    height: 65px;
+  }
+
+  .pn-sufi-center span {
+    font-size: 38px;
+  }
+
+  .pn-comedy-copy {
+    left: 18px;
+    bottom: 20px;
+
+    font-size: clamp(38px, 12vw, 62px);
+  }
+
+  .pn-comedy-side {
+    right: 18px;
+    font-size: 7px;
+  }
+
+  .pn-comedy-bottom {
+    left: 18px;
+    right: 18px;
+    top: 18px;
+
+    font-size: 7px;
+  }
+
+  .pn-comedy-circle-one {
+    width: 220px;
+    height: 220px;
+  }
+
+  .pn-comedy-circle-two {
+    width: 320px;
+    height: 120px;
+  }
+
+  .pn-comedy-mark {
+    width: 65px;
+    height: 65px;
+
+    font-size: 42px;
+  }
+
+  .pn-image-meta {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+  }
+
+  .pn-image-meta strong {
+    font-size: clamp(31px, 10vw, 55px);
+  }
+
+  .pn-reveal-button {
+    width: calc(100% - 5px);
+
+    min-height: 60px;
+
+    box-shadow: 5px 5px 0 var(--pn-ink);
+
+    padding: 0 17px;
+  }
+
+  .pn-hints-column {
+    display: block;
+  }
+
+  .pn-hints-header {
+    padding-bottom: 13px;
+  }
+
+  .pn-hints-intro {
+    padding: 21px 0;
+  }
+
+  .pn-hints-list {
+    display: flex;
+    gap: 0;
+  }
+
+  .pn-hint {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+
+    gap: 12px;
+
+    padding: 17px 0;
+
+    border: 0;
+    border-bottom: 1px solid var(--pn-line);
+  }
+
+  .pn-hint:hover {
+    padding-left: 0;
+  }
+
+  .pn-hint p {
+    font-size: 12px;
+  }
+
+  .pn-revealed-info {
+    padding-top: 22px;
+  }
+
+  .pn-revealed-info h3 {
+    margin-bottom: 25px;
+    font-size: clamp(38px, 12vw, 60px);
+  }
+
+  .pn-night-footer {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+
+    padding: 20px 0;
+  }
+
+  .pn-footer-center {
+    text-align: left;
+  }
+
+  .pn-night-footer > .pn-mono:last-child {
+    text-align: left;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 400px) {
+  .pn-hero,
+  .pn-day-tabs,
+  .pn-night-content {
+    width: calc(100% - 22px);
+  }
+
+  .pn-day-tabs button {
+    min-height: 54px;
+    padding: 8px 6px;
+  }
+
+  .pn-day-tabs button strong {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+
+  .pn-night-heading h2 {
+    font-size: 48px;
+  }
+
+  .pn-hint {
+    grid-template-columns: 65px minmax(0, 1fr);
+  }
+
+  .pn-hint-number {
+    font-size: 7px;
+  }
+
+  .pn-hint p {
+    font-size: 11px;
+  }
+
+  .pn-comedy-copy {
+    font-size: 35px;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-page *,
+  .pn-page *::before,
+  .pn-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   PANACEA NIGHTS — DARK THEME
+   ========================================================= */
+
+html.dark .pn-page {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+/* Hero */
+html.dark .pn-hero {
+  color: var(--ink);
+}
+
+html.dark .pn-hero-title,
+html.dark .pn-hero-eyebrow,
+html.dark .pn-hero-count {
+  color: var(--ink);
+}
+
+/* Day tabs */
+html.dark .pn-day-tabs {
+  border-top-color: var(--border);
+  border-bottom-color: var(--border);
+}
+
+html.dark .pn-day-tab {
+  color: var(--ink);
+  border-right-color: var(--border);
+  background: transparent;
+}
+
+html.dark .pn-day-tab:first-child {
+  border-left-color: var(--border);
+}
+
+html.dark .pn-day-tab:hover {
+  background: rgba(243, 235, 216, 0.08);
+  color: var(--ink);
+}
+
+html.dark .pn-day-tab.active {
+  background: #ff3f7f;
+  color: #11100f;
+}
+
+/* Night header */
+html.dark .pn-night-header {
+  border-bottom-color: var(--border);
+}
+
+html.dark .pn-night-header,
+html.dark .pn-night-header h2,
+html.dark .pn-night-header .mono {
+  color: var(--ink);
+}
+
+html.dark .pn-night-header-right .mono:last-child {
+  color: var(--muted);
+}
+
+/* Main night section */
+html.dark .pn-night {
+  color: var(--ink);
+}
+
+/* Visual cards */
+html.dark .pn-visual-card,
+html.dark .pn-visual-wrap {
+  border-color: var(--border);
+}
+
+/* Keep accent cards vibrant */
+html.dark .pn-visual-pink {
+  background: #ff3f7f;
+}
+
+html.dark .pn-visual-yellow {
+  background: #ffbd19;
+}
+
+/* Mystery / visual content */
+html.dark .pn-mystery-state,
+html.dark .pn-image-state,
+html.dark .pn-visual-content {
+  color: var(--ink);
+}
+
+/* Info panel */
+html.dark .pn-info-panel {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+html.dark .pn-info-header {
+  color: var(--ink);
+  border-bottom-color: var(--border);
+}
+
+html.dark .pn-hint {
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+html.dark .pn-hint p {
+  color: var(--ink);
+}
+
+html.dark .pn-hint-number {
+  color: #ff3f7f;
+}
+
+/* Yellow hint variant */
+html.dark .pn-info-yellow .pn-hint-number {
+  color: #ffbd19;
+}
+
+/* Muted information */
+html.dark .pn-info-footer span:last-child,
+html.dark .pn-revealed-line .mono {
+  color: var(--muted);
+}
+
+/* Reveal button */
+html.dark .pn-reveal-button {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 7px 7px 0 var(--ink);
+}
+
+html.dark .pn-reveal-button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: 9px 9px 0 var(--ink);
+}
+
+html.dark .pn-reveal-button.is-active {
+  background: #ff3f7f;
+  color: #11100f;
+}
+
+html.dark .pn-button-yellow.is-active,
+html.dark .pn-reveal-yellow.is-active {
+  background: #ffbd19;
+  color: #11100f;
+}
+
+/* Revealed artist/message */
+html.dark .pn-revealed-message {
+  background: var(--surface-2);
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+html.dark .pn-revealed-message strong {
+  color: var(--ink);
+}
+
+html.dark .pn-revealed-message .mono {
+  color: #ff3f7f;
+}
+
+html.dark .pn-info-yellow .pn-revealed-message .mono {
+  color: #ffbd19;
+}
+
+/* Bottom bar */
+html.dark .pn-bottom-bar,
+html.dark .pn-page-footer,
+html.dark .pn-night-footer {
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+html.dark .pn-bottom-bar span,
+html.dark .pn-night-footer span {
+  color: var(--ink);
+}
+
+/* Any remaining PANACEA Nights links */
+html.dark .pn-page a {
+  color: var(--ink);
+}
+
+/* Inputs / buttons inside PANACEA Nights */
+html.dark .pn-page button {
+  font-family: inherit;
+}
+
+/* =========================================================
+   PANACEA NIGHTS — DARK MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  html.dark .pn-day-tabs {
+    border-color: var(--border);
+  }
+
+  html.dark .pn-day-tab {
+    border-color: var(--border);
+  }
+
+  html.dark .pn-night-header {
+    border-bottom-color: var(--border);
+  }
+
+  html.dark .pn-hint {
+    border-bottom-color: var(--border);
+  }
+
+  html.dark .pn-reveal-button {
+    width: 100%;
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  html.dark .pn-reveal-button.is-active {
+    background: #ff3f7f;
+    color: #11100f;
+  }
+}
+
+/* =========================================================
+   PANACEA NIGHTS — DARK SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 400px) {
+  html.dark .pn-page {
+    overflow-x: hidden;
+  }
+
+  html.dark .pn-day-tab {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}

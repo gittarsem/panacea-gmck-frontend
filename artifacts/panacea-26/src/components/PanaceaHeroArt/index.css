@@ -1,0 +1,85 @@
+.panacea-hero-art {
+  position: absolute;
+  width: min(40vw, 620px);
+  aspect-ratio: 1 / 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  right: 3vw;
+  top: 50%;
+  transform: translateY(-50%);
+
+  margin: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.panacea-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  opacity: 1;
+}
+
+/* Stars */
+.panacea-star {
+  position: absolute;
+  z-index: 2;
+  color: #ffbd17;
+  font-size: clamp(20px, 2.5vw, 40px);
+  line-height: 1;
+  animation: panaceaStarPulse 2.8s ease-in-out infinite;
+}
+
+.panacea-star-1 {
+  top: 10%;
+  right: 15%;
+}
+
+.panacea-star-2 {
+  top: 25%;
+  right: 5%;
+  font-size: clamp(12px, 1.5vw, 24px);
+  animation-delay: 0.8s;
+}
+
+.panacea-star-3 {
+  top: 18%;
+  left: 25%;
+  font-size: clamp(10px, 1.3vw, 22px);
+  animation-delay: 1.5s;
+}
+
+@keyframes panaceaStarPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.75) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(15deg);
+  }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .panacea-hero-art {
+    width: 48vw;
+    max-width: 500px;
+    right: -4vw;
+    top: 38%;
+    transform: translateY(-50%);
+  }
+}
+
+/* Small screens — hide artwork completely */
+@media (max-width: 640px) {
+  .panacea-hero-art {
+    display: none;
+  }
+}

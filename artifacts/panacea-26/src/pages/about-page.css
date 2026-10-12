@@ -1,0 +1,399 @@
+.about-page {
+  background: var(--cream);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.about-page * {
+  box-sizing: border-box;
+}
+
+/* HERO */
+
+.about-hero-simple {
+  padding: 82px 0 75px;
+  border-bottom: 1px solid var(--ink);
+  background: var(--cream);
+}
+
+.about-hero-simple .shell {
+  position: relative;
+}
+
+.about-hero-simple h1 {
+  font-size: clamp(68px, 11vw, 155px);
+  line-height: 0.78;
+  margin: 25px 0 28px;
+  max-width: 950px;
+}
+
+.about-hero-simple h1 span {
+  color: var(--pink);
+  -webkit-text-stroke: 1px var(--ink);
+  text-shadow: 4px 4px 0 var(--ink);
+}
+
+.about-hero-copy {
+  max-width: 560px;
+  margin: 28px 0;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.about-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-top: 32px;
+  font: 10px "DM Mono", monospace;
+  letter-spacing: 0.12em;
+}
+
+/* INTRO */
+
+.about-intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+  align-items: end;
+}
+
+.about-big-line {
+  display: flex;
+  flex-direction: column;
+  font: clamp(42px, 6vw, 78px) "Archivo Black", sans-serif;
+  line-height: 0.86;
+  letter-spacing: -0.06em;
+}
+
+.about-big-line span:nth-child(2) {
+  color: var(--pink);
+  -webkit-text-stroke: 1px var(--ink);
+}
+
+.about-intro-copy {
+  max-width: 520px;
+}
+
+.about-intro-copy p {
+  line-height: 1.75;
+  margin: 0 0 20px;
+}
+
+/* GMC */
+
+.about-gmc-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.about-gmc-copy {
+  max-width: 570px;
+}
+
+.about-gmc-copy p {
+  line-height: 1.75;
+  margin: 0 0 18px;
+}
+
+.about-gmc-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.about-gmc-facts div {
+  border: 1px solid var(--cream);
+  padding: 17px 13px;
+}
+
+.about-gmc-facts strong {
+  display: block;
+  font: 28px "Archivo Black", sans-serif;
+  line-height: 1;
+}
+
+.about-gmc-facts span {
+  display: block;
+  margin-top: 8px;
+  font: 8px "DM Mono", monospace;
+  letter-spacing: 0.08em;
+}
+
+/* COORDINATORS */
+
+.about-coordinator-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.about-coordinator {
+  min-height: 175px;
+  border: 1px solid var(--ink);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--yellow);
+  box-shadow: 4px 4px var(--ink);
+}
+
+.about-coordinator:nth-child(2) {
+  background: var(--blue);
+}
+
+.about-coordinator:nth-child(3) {
+  background: var(--pink);
+}
+
+.about-coordinator strong {
+  font: 27px "Archivo Black", sans-serif;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.about-coordinator > span:last-child {
+  font-size: 12px;
+}
+
+/* ORGANISERS */
+
+.about-organizer-box {
+  border-top: 1px solid var(--ink);
+}
+
+.about-organizer-list {
+  border-bottom: 1px solid var(--ink);
+}
+
+.about-organizer-trigger {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 21px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ink);
+  font: 22px "Archivo Black", sans-serif;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.about-organizer-trigger svg {
+  transition: transform 0.2s ease;
+}
+
+.about-organizer-list.is-open .about-organizer-trigger svg {
+  transform: rotate(180deg);
+}
+
+.about-organizer-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 0 24px;
+}
+
+.about-organizer-names .pill {
+  background: var(--cream);
+}
+
+/* VENUES */
+
+.about-venue-list {
+  border-top: 1px solid var(--ink);
+}
+
+.about-venue-row {
+  display: grid;
+  grid-template-columns: 70px 1.1fr 1fr 25px;
+  gap: 25px;
+  align-items: center;
+  padding: 25px 22px;
+  border: 1px solid var(--ink);
+  border-top: 0;
+}
+
+.about-venue-row h3 {
+  font: 25px "Archivo Black", sans-serif;
+  line-height: 0.95;
+  margin: 8px 0 0;
+}
+
+.about-venue-row p {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 390px;
+}
+
+.about-venue-number {
+  font: 24px "Archivo Black", sans-serif;
+}
+
+/* PANACEA NIGHTS */
+
+.about-nights-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.about-nights-heading p {
+  max-width: 300px;
+  line-height: 1.6;
+  color: var(--cream);
+}
+
+.about-night-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--cream);
+  border-bottom: 1px solid var(--cream);
+  margin-bottom: 30px;
+}
+
+.about-night-grid > div {
+  padding: 25px 18px;
+  border-right: 1px solid var(--cream);
+}
+
+.about-night-grid > div:last-child {
+  border-right: 0;
+}
+
+.about-night-grid span,
+.about-night-grid small {
+  display: block;
+  font: 9px "DM Mono", monospace;
+  letter-spacing: 0.08em;
+}
+
+.about-night-grid strong {
+  display: block;
+  margin: 32px 0 8px;
+  font: 24px "Archivo Black", sans-serif;
+  line-height: 0.95;
+  color: var(--pink);
+}
+
+/* FINAL */
+
+.about-final-simple {
+  padding: 90px 0;
+  background: var(--yellow);
+  border-bottom: 1px solid var(--ink);
+}
+
+.about-final-simple h2 {
+  font-size: clamp(60px, 10vw, 135px);
+  margin: 25px 0 35px;
+}
+
+.about-final-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .about-intro-grid,
+  .about-gmc-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .about-coordinator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-venue-row {
+    grid-template-columns: 50px 1fr 25px;
+  }
+
+  .about-venue-row p {
+    grid-column: 2 / -1;
+  }
+
+  .about-night-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-night-grid > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .about-night-grid > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--cream);
+  }
+
+  .about-nights-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .about-hero-simple {
+    padding: 55px 0 50px;
+  }
+
+  .about-hero-simple h1 {
+    font-size: clamp(58px, 17vw, 92px);
+  }
+
+  .about-hero-copy {
+    font-size: 16px;
+  }
+
+  .about-big-line {
+    font-size: 48px;
+  }
+
+  .about-gmc-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .about-venue-row {
+    grid-template-columns: 42px 1fr;
+    gap: 15px;
+  }
+
+  .about-venue-row svg {
+    display: none;
+  }
+
+  .about-venue-row p {
+    grid-column: 2;
+  }
+
+  .about-night-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-night-grid > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--cream);
+  }
+
+  .about-night-grid > div:last-child {
+    border-bottom: 0;
+  }
+
+  .about-night-grid > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .about-final-simple {
+    padding: 65px 0;
+  }
+}
