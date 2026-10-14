@@ -1142,14 +1142,14 @@ function Home() {
 
                     <div className="paper-panel">
                         <span className="pill">
-                            ANNOUNCEMENT · FEST ’26
+                            OFFICIAL · PANACEA ’26
                         </span>
 
                         <h3
                             className="display"
                             style={{ fontSize: 28 }}
                         >
-                            The dates are in.
+                            The dates are locked.
                         </h3>
 
                         <p
@@ -1157,18 +1157,25 @@ function Home() {
                                 lineHeight: 1.7,
                             }}
                         >
-                            PANACEA ’26 runs 28—31 October 2026
-                            at GMC Kathua. Event-by-event dates,
-                            times, eligibility, venues and
-                            registration terms will be shared here
-                            when confirmed.
+                            <strong>PANACEA ’26</strong> takes over Government Medical
+                            College, Kathua from <strong>28—31 October 2026</strong>.
+                            Four days. One campus. Endless memories.
+                            <br />
+                            <br />
+                            From sports and academics to cultural events, competitions,
+                            music, and everything in between — the countdown is officially on.
+                            <br />
+                            <br />
+                            <strong>BR Card registrations are now open.</strong>
+                            Grab your card, get your crew together, and get ready for
+                            four days of PANACEA ’26.
                         </p>
 
                         <p
                             className="mono"
                             style={{ fontSize: 10 }}
                         >
-                            UPDATED · DETAILS TBA
+                            UPDATED · 14 OCTOBER 2026 · COUNTDOWN BEGINS
                         </p>
                     </div>
                 </div>
