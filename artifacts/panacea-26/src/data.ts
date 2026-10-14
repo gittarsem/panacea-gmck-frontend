@@ -165,6 +165,32 @@ export const events: EventItem[] = [
     }
   ),
 
+  make(
+  "Factually feral",
+  "Factually Feral",
+  "Cultural",
+  "A presentation competition where facts are sacred, but the delivery is not. Pick a topic. Research it. Absolutely ruin the conventional way of explaining it.",
+  "Presentation Competition",
+  {
+    date: "30 OCT 2026",
+    time: "5:00 PM — 6:00 PM",
+    venue: "Lecture Hall",
+  }
+),
+
+make(
+  "stone-painting",
+  "Stone Painting",
+  "Cultural",
+  "Transform ordinary stones into extraordinary art with your creativity, colours, and imagination!",
+  "Art Competition",
+  {
+    date: "30 OCT 2026",
+    time: "11:00 AM",
+    venue: "Lecture Hall",
+  }
+),
+
   /* =========================================================
      SPORTS
      ========================================================= */
@@ -194,6 +220,19 @@ export const events: EventItem[] = [
       venue: "Football Ground",
     }
   ),
+
+  make(
+  "volleyball",
+  "Volleyball",
+  "Sports",
+  "Compete in an inter-college volleyball tournament showcasing teamwork, skill, coordination, and competitive spirit.",
+  "Tournament",
+  {
+    date: "28—31 OCT 2026",
+    time: "Time TBA",
+    venue: "Volleyball Court",
+  }
+),
 
   make(
     "badminton",
