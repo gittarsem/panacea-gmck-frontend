@@ -70,7 +70,7 @@ export default function BrCardPaymentPage() {
 
 
 
-  const upiId = "faizanmalik551@okicici";
+  const upiId = "aryeenpunj@oksbi";
 
 
 
