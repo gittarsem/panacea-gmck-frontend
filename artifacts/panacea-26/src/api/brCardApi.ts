@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
-    "https://panacea-gmck-backend.onrender.com";
+    "https://panacea-gmck-backend-srvn.onrender.com";
 
 const TOKEN_KEY = "panacea_access_token";
 
